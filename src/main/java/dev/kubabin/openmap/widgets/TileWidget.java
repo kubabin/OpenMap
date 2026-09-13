@@ -4,10 +4,7 @@ import com.llamalad7.mixinextras.lib.apache.commons.tuple.Pair;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import dev.kubabin.openmap.CachedTile;
-import dev.kubabin.openmap.DynamicTextureManager;
-import dev.kubabin.openmap.MinimapShaderHandler;
-import dev.kubabin.openmap.MinimapThreadManager;
+import dev.kubabin.openmap.*;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -20,8 +17,8 @@ import org.lwjgl.opengl.GL11;
 import java.nio.ByteBuffer;
 
 public class TileWidget extends AbstractWidget {
-    public static int translateX = 0;
-    public static int translateY = 0;
+    public static double translateX = 0;
+    public static double translateY = 0;
     public static double scale = 1;
     public static final double scaleScroll = 0.1;
     private final int regionX;
@@ -46,6 +43,9 @@ public class TileWidget extends AbstractWidget {
 
     @Override
     protected void renderWidget(@NotNull GuiGraphics guiGraphics, int i, int i1, float v) {
+        /*guiGraphics.blit(ResourceLocation.fromNamespaceAndPath(Openmap.MODID,"textures/gui/worldmap-bg.png"),
+                );
+         */
         DynamicTexture texture = DynamicTextureManager.getTexture();
         if (texture == null) {
             return;
@@ -76,7 +76,7 @@ public class TileWidget extends AbstractWidget {
         int height = CachedTile.HEIGHT;
         RenderSystem.setShaderTexture(0, texture.getId());
         //RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShader(MinimapShaderHandler::getWorldmapShader);
+        RenderSystem.setShader(MinimapRendering::getWorldmapShader);
         makePose(guiGraphics);
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
         BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
@@ -95,13 +95,6 @@ public class TileWidget extends AbstractWidget {
         //tile.data.flip();
     }
 
-    @Override
-    protected void onDrag(double mouseX, double mouseY, double dragX, double dragY) {
-        super.onDrag(mouseX, mouseY, dragX, dragY);
-        translateX += (int) dragX;
-        translateY += (int) dragY;
-    }
-
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
@@ -117,10 +110,10 @@ public class TileWidget extends AbstractWidget {
     protected void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
 
     }
-    public static int getTranslateX(){
+    public static double getTranslateX(){
         return translateX;
     }
-    public static int getTranslateY(){
+    public static double getTranslateY(){
         return translateY;
     }
     public static double getScale(){

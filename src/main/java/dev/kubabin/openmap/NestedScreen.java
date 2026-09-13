@@ -18,10 +18,20 @@ public class NestedScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int p_281550_, int p_282878_, float p_282465_) {
+    public boolean mouseClicked(double mouseX, double mouseY, int p_94697_) {
+        return super.mouseClicked(mouseX-x, mouseY-y, p_94697_);
+    }
+
+    @Override
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float p_282465_) {
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(x,y,0);
-        super.render(guiGraphics, p_281550_, p_282878_, p_282465_);
+        super.render(guiGraphics, mouseX-x, mouseY-y, p_282465_);
         guiGraphics.pose().popPose();
+    }
+
+    @Override
+    public void onClose() {
+
     }
 }

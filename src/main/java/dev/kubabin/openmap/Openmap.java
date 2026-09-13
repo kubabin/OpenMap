@@ -14,6 +14,8 @@ public class Openmap {
     // Directly reference a slf4j logger
     protected static final Logger LOGGER = LogUtils.getLogger();
 
+    public static final String LAYER_WAYPOINTS = "key.openmap.waypoints";
+    public static final String LAYER_PLAYERS   = "key.openmap.players";
     // The constructor for the mod class is the first code that is run when your mod is loaded.
     // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
     public Openmap(ModContainer modContainer) {

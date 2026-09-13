@@ -1,3 +1,8 @@
 {
-  "key.openmap.worldmap": "World Map"
+  "key.openmap.worldmap": "World Map",
+  "key.openmap.waypoints": "Waypoints",
+  "key.openmap.players": "Players",
+  "key.openmap.delete": "Delete",
+  "key.openmap.teleport": "Teleport",
+  "key.openmap.centerplayer": "Center the map on the player"
 }

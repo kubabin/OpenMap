@@ -1,13 +1,11 @@
 package dev.kubabin.openmap.widgets;
 
-import dev.kubabin.openmap.Openmap;
 import dev.kubabin.openmap.WorldmapScreen;
 import dev.kubabin.openmap.api.MenuItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.HashMap;
 
@@ -23,7 +21,7 @@ public class MenuWidget extends BetterAbstractWidget {
     }
 
     @Override
-    protected void renderWidget(GuiGraphics guiGraphics, int i, int i1, float v) {
+    protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float v) {
         Minecraft mc = Minecraft.getInstance();
         guiGraphics.fill(getX(),getY(),getX()+width,getY()+height, 0xFF302f00);
         guiGraphics.fill(getX()+2,getY()+2,
@@ -42,8 +40,12 @@ public class MenuWidget extends BetterAbstractWidget {
             guiGraphics.blit(item.icon(), x,y+1, 0,0,
                     ENTRY_HEIGHT-ENTRY_PADDING, ENTRY_HEIGHT-ENTRY_PADDING,
                     16, 16);
+            int color = 0xFFFFFFFF;
+            if (mouseX >= x && mouseX <= getX()+width && mouseY >= y && mouseY <= y+ENTRY_HEIGHT){
+                color = 0xFF969302;
+            }
             guiGraphics.drawString(mc.font, item.text(), x+ENTRY_HEIGHT+ENTRY_PADDING,
-                    y+6, 0xFFFFFFFF);
+                    y+6, color);
             y += ENTRY_HEIGHT;
         }
     }
@@ -72,8 +74,7 @@ public class MenuWidget extends BetterAbstractWidget {
             return false;
         }
 
-        MenuItem[] items = menuItems.values().toArray(new MenuItem[0]);
-        MenuItem item = items[entry];
+        MenuItem item = (MenuItem) menuItems.values().toArray()[entry];
         item.onClick().run(mouseX, mouseY);
         return true;
     }

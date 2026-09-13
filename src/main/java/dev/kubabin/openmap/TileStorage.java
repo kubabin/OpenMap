@@ -30,6 +30,7 @@ public class TileStorage {
             }
         }
         if (!tiles.containsKey(regionId)) {
+            if (tiles.size() >= 25) return null;
             Openmap.LOGGER.info("Opening region {}, {}", regionX, regionZ);
             CachedTile tile = new CachedTile(regionX, regionZ);
             tiles.put(regionId, tile);
@@ -44,13 +45,14 @@ public class TileStorage {
      * @param z     Global world Y coordinate
      * @param color Block/pixel color
      */
-    public void writePixel(int x, int z, int color) {
+    public void writePixel(int x, int z, int color /*, short topo*/) {
         int regionX = Math.floorDiv(x, CachedTile.WIDTH);
         int regionZ = Math.floorDiv(z, CachedTile.HEIGHT);
         CachedTile tile = openRegionFile(regionX, regionZ);
         int localX = Math.floorMod(x, CachedTile.WIDTH);
         int localZ = Math.floorMod(z, CachedTile.HEIGHT);
         tile.setPixel(localX, localZ, color);
+        //tile.setTopo(x, z, topo);
     }
 
     public void saveAll(){
@@ -60,12 +62,10 @@ public class TileStorage {
         }
     }
     public void cleanup() {
-        Iterator<String> iter = tiles.keySet().iterator();
-        while (iter.hasNext()) {
-            String key = iter.next();
-            tiles.get(key).saveToDisk();
-            iter.remove();
+        for (CachedTile tile : tiles.values()){
+            tile.saveToDisk();
         }
+        tiles.clear();
     }
 
 }

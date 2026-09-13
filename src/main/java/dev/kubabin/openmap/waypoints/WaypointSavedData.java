@@ -4,14 +4,13 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 
 import java.util.*;
 
 public class WaypointSavedData extends SavedData {
-    private static final String DATA_NAME = "mymod_waypoints";
+    private static final String DATA_NAME = "openmap_waypoints";
 
     private final Map<UUID, List<Waypoint>> waypoints = new HashMap<>();
 
@@ -40,7 +39,8 @@ public class WaypointSavedData extends SavedData {
                         waypoint.getDouble("y"),
                         waypoint.getDouble("z"),
                         waypoint.getString("name"),
-                        waypoint.getString("icon")
+                        waypoint.getString("icon"),
+                        waypoint.getUUID("uuid")
                 ));
             }
 
@@ -69,6 +69,7 @@ public class WaypointSavedData extends SavedData {
                 waypointTag.putDouble("z", waypoint.z());
                 waypointTag.putString("name", waypoint.name());
                 waypointTag.putString("icon", waypoint.icon().toString());
+                waypointTag.putUUID("uuid", waypoint.uuid());
 
                 waypointList.add(waypointTag);
             }
