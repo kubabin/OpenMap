@@ -35,8 +35,6 @@ import static dev.kubabin.openmap.Openmap.MODID;
 public class ClientModEvents {
     private static int tickCounter = 0;
     private static final int TICKS_PER_UPDATE = 10; // Update every second (20 ticks)
-    public static final int MAP_SIZE = 128; // On-screen size in pixels; blocks visible per side
-    public static final int CAPTURE_SIZE = MAP_SIZE + 2; // 1-block margin on each side for smooth sub-pixel scrolling
     public static boolean cache_enabled = true;
     public static int lastCenterX = 0;
     public static int lastCenterZ = 0;
@@ -100,6 +98,7 @@ public class ClientModEvents {
                 "Add waypoint",
                 ((mouseX, mouseY) -> {
                     ParentScreen screen = (ParentScreen) Minecraft.getInstance().screen;
+                    if (screen == null) return;
                     screen.openScreen(new CreateWaypointScreen((int) mouseX, (int) mouseY, screen));
                 })
         ));
@@ -114,7 +113,7 @@ public class ClientModEvents {
     public static void onRegisterLayers(RegisterGuiLayersEvent event) {
         // Call the newRender method to render the minimap
         event.registerAboveAll(
-                ResourceLocation.fromNamespaceAndPath(MODID, "openmap_hud"),
+                ResourceLocation.fromNamespaceAndPath(MODID, "minimap_hud"),
                 (MinimapRendering::renderMinimap)
         );
     }
@@ -144,7 +143,7 @@ public class ClientModEvents {
             Minecraft mc = Minecraft.getInstance();
             if (mc.screen == null) {
                 MinimapThreadManager.pause = true;
-                mc.setScreen(new WorldmapScreen(Component.literal("World Map")));
+                mc.setScreen(new WorldmapScreen());
             } else if (mc.screen instanceof WorldmapScreen) {
                 MinimapThreadManager.pause = false;
                 mc.setScreen(null);

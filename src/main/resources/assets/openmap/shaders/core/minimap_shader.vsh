@@ -6,12 +6,12 @@ in vec4 Color;
 
 uniform mat4 ModelViewMat;
 uniform mat4 ProjMat;
+uniform vec2 MaskUvMin;
+uniform vec2 MaskUvSize;
 
 out vec2 texCoord0;
-out vec4 vertexColor;
 
 void main() {
     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
-    texCoord0 = UV0;
-    vertexColor = Color;
+    texCoord0 = UV0 * vec2(2) - vec2(0.5);
 }

@@ -3,6 +3,7 @@ package dev.kubabin.openmap;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
+import dev.kubabin.openmap.waypoints.WaypointRendering;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -10,7 +11,6 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -72,10 +72,7 @@ public class MinimapRendering {
         if (mc.options.hideGui || mc.player == null || mc.level == null) return;
         if (mc.getDebugOverlay().showDebugScreen()) return;
 
-        BlockPos playerPos = mc.player.blockPosition();
-        guiGraphics.drawString(mc.font,
-                "X: " + playerPos.getX() + "  Y: " + playerPos.getY() + "  Z: " + playerPos.getZ(),
-                10, MAP_SIZE+10, 0xFFFFFFFF, false);
+
 
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
@@ -90,54 +87,40 @@ public class MinimapRendering {
             DynamicTextureManager.readyToUpload = false;
             DynamicTextureManager.getTexture().upload();
         }
-        // Sample the texture shifted by the player's sub-block fraction so the map slides smoothly
-        float maxUv = Config.mapSize - MAP_SIZE;
-        float u = Mth.clamp((float) (mc.player.getX() - lastCenterX) + (CAPTURE_SIZE - MAP_SIZE) / 2.0f, 0, maxUv);
-        float v = Mth.clamp((float) (mc.player.getZ() - lastCenterZ) + (CAPTURE_SIZE - MAP_SIZE) / 2.0f, 0, maxUv);
 
         float yaw = mc.player.getViewYRot(deltaTracker.getGameTimeDeltaPartialTick(true));
 
         // Rotate the map around its center so the player's facing direction points up
         if (Config.rotateMap) {
-            guiGraphics.pose().pushPose();
+            /*guiGraphics.pose().pushPose();
             guiGraphics.pose().translate(MAP_SIZE / 2.0, MAP_SIZE / 2.0, 0);
             guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(180.0f - yaw));
-            guiGraphics.pose().translate(-MAP_SIZE / 2.0, -MAP_SIZE / 2.0, 0);
+            guiGraphics.pose().translate(-MAP_SIZE / 2.0, -MAP_SIZE / 2.0, 0);*/
+            shader.safeGetUniform("angle").set((float) Math.toRadians(180f-yaw));
         }
+        int size = Config.getBaseMapSize();
+        float sqr2 = 0.414213f;
         if (shader != null) {
             // Draw the quad manually: GuiGraphics.blit() forces the position_tex_color
             // shader internally, which would ignore our minimap shader entirely
             Matrix4f mapMatrix = guiGraphics.pose().last().pose();
-            float u0 = u / Config.mapSize;
-            float v0 = v / Config.mapSize;
-            float u1 = (u + MAP_SIZE) / Config.mapSize;
-            float v1 = (v + MAP_SIZE) / Config.mapSize;
             shader.safeGetUniform("Circular").set(Config.circularMap ? 1.0f : 0.0f);
-            shader.safeGetUniform("MaskUvMin").set(u0, v0);
-            shader.safeGetUniform("MaskUvSize").set(u1 - u0, v1 - v0);
-            BufferBuilder mapBuffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR);
-            mapBuffer.addVertex(mapMatrix, 0, 0, 0).setUv(u0, v0).setColor(1f, 1f, 1f, 1f);
-            mapBuffer.addVertex(mapMatrix, 0, MAP_SIZE, 0).setUv(u0, v1).setColor(1f, 1f, 1f, 1f);
-            mapBuffer.addVertex(mapMatrix, MAP_SIZE, MAP_SIZE, 0).setUv(u1, v1).setColor(1f, 1f, 1f, 1f);
-            mapBuffer.addVertex(mapMatrix, MAP_SIZE, 0, 0).setUv(u1, v0).setColor(1f, 1f, 1f, 1f);
+            shader.safeGetUniform("MaskUvMin").set(0f, 0f);
+            shader.safeGetUniform("MaskUvSize").set(1.0f, 1.0f);
+            BufferBuilder mapBuffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+            mapBuffer.addVertex(mapMatrix, 0, 0, 0).setUv(sqr2, sqr2);
+            mapBuffer.addVertex(mapMatrix, 0, size, 0).setUv(sqr2, 1f-sqr2);
+            mapBuffer.addVertex(mapMatrix, size, size, 0).setUv(1-sqr2, 1f-sqr2);
+            mapBuffer.addVertex(mapMatrix, size, 0, 0).setUv(1-sqr2, sqr2);
             BufferUploader.drawWithShader(mapBuffer.buildOrThrow());
-        } else {
-            guiGraphics.blit(
-                    DynamicTextureManager.DYNAMIC_TEXTURE_LOCATION,
-                    0, 0, // XY screen pos
-                    MAP_SIZE, MAP_SIZE, // Screen size
-                    u, v, // Texture UV offset (sub-pixel)
-                    MAP_SIZE, MAP_SIZE, // Texture region size, sampled 1:1
-                    Config.mapSize, Config.mapSize // Full texture size
-            );
         }
         if (Config.rotateMap) {
-            guiGraphics.pose().popPose();
+            //guiGraphics.pose().popPose();
         }
         // Draw player marker in the center, rotated to match the player's yaw
         // (points straight up when the map itself rotates)
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(MAP_SIZE / 2.0, MAP_SIZE / 2.0, 0);
+        guiGraphics.pose().translate(size / 2.0, size / 2.0, 0);
         if (!Config.rotateMap) {
             guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(yaw + 180));
         }
@@ -159,5 +142,12 @@ public class MinimapRendering {
         RenderSystem.setShader(GameRenderer::getPositionTexColorShader);
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(true);
+        BlockPos playerPos = mc.player.blockPosition();
+        guiGraphics.drawString(mc.font,
+                "X: " + playerPos.getX() + "  Y: " + playerPos.getY() + "  Z: " + playerPos.getZ(),
+                10, size+10, 0xFFFFFFFF, false);
+        guiGraphics.drawString(mc.font,
+                String.valueOf(WaypointRendering.distance),
+                10, size+20, 0xFFFFFFFF, false);
     }
 }

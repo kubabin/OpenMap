@@ -13,19 +13,22 @@ public class DynamicTextureManager {
     protected static NativeImage nativeImage;
     public static boolean readyToUpload = false;
     private static final Object IMAGE_LOCK = new Object();
+    public static boolean loaded = false;
     public static void initTexture() {
-        // Create a blank native image (e.g., 256x256 pixels)
-        nativeImage = new NativeImage(Config.mapSize, Config.mapSize, false);
+        nativeImage = new NativeImage(Config.getMapSize(), Config.getMapSize(), false);
 
-        // Instantiate the DynamicTexture
         dynamicTexture = new DynamicTexture(nativeImage);
         // Linear filtering so sub-pixel map scrolling looks smooth
         dynamicTexture.setFilter(true, false);
 
-
         // Register it into Minecraft's texture engine
         Minecraft.getInstance().getTextureManager().register(DYNAMIC_TEXTURE_LOCATION, dynamicTexture);
-        nativeImage.fillRect(0, 0, 512, 512, 0xFFFF0000); // Fill with blue color
+        loaded = true;
+    }
+    public static void reinitTexture() {
+        if (!loaded) return;
+        nativeImage = new NativeImage(Config.getMapSize(), Config.getMapSize(), false);
+        dynamicTexture.setPixels(nativeImage);
     }
     public static void setPixel(int x, int z, int argbColor) {
         synchronized (IMAGE_LOCK) {

@@ -8,7 +8,6 @@ import net.minecraft.world.level.Level;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static dev.kubabin.openmap.ClientModEvents.CAPTURE_SIZE;
 
 public class MinimapThreadManager {
     private static final ExecutorService TEXTURE_WORKER = Executors.newSingleThreadExecutor();
@@ -22,7 +21,7 @@ public class MinimapThreadManager {
         Minecraft mc = Minecraft.getInstance();
         Entity player = Minecraft.getInstance().getCameraEntity();
         processSnapshotAsync(ChunkSnapshot.createSnapshot(mc.level, player.blockPosition(),
-                CAPTURE_SIZE));
+                Config.getMapSize()));
     }
     public static void processSnapshotAsync(ChunkSnapshot snapshot) {
         if (pause)
@@ -30,12 +29,12 @@ public class MinimapThreadManager {
         TEXTURE_WORKER.submit(() -> {
             DynamicTextureManager.getTexture().getPixels().applyToAllPixels((inp) -> 0);
             int index = 0;
-            int offset = 130/2 - (snapshot.size / 2);
+            //int offset = 130/2 - (snapshot.size / 2);
             for (int z = 0; z < snapshot.size; z++) {
                 for (int x = 0; x < snapshot.size; x++) {
                     int color = snapshot.colorData[index++];
 
-                    DynamicTextureManager.setPixel(offset+z, offset+x, 0xFF000000 | color);
+                    DynamicTextureManager.setPixel(z, x, 0xFF000000 | color);
                 }
             }
             DynamicTextureManager.readyToUpload = true;
@@ -54,23 +53,13 @@ public class MinimapThreadManager {
             }
         });
     }
-    public static void process(Minecraft mc){
-        COORDINATOR.submit(() -> {
-            if (chunkSnapshot == null){
-                chunkSnapshot = ChunkSnapshot.createSnapshot(mc.cameraEntity.level(), mc.cameraEntity.blockPosition(), CAPTURE_SIZE);
-            }
-            chunkSnapshot.updateSnapshot(mc.cameraEntity.level(), mc.cameraEntity.blockPosition());
-            MinimapThreadManager.processSnapshotAsync(chunkSnapshot);
-        });
-
-    }
     public static void process(Player player, Level level){
         COORDINATOR.submit(()->{
             if (chunkSnapshot == null){
-                chunkSnapshot = ChunkSnapshot.createSnapshot(level, player.blockPosition(), CAPTURE_SIZE);
+                chunkSnapshot = ChunkSnapshot.createSnapshot(level, player.blockPosition(), Config.getMapSize());
             } else {
                 // Keep full capture resolution even at high speed to preserve terrain shading/depth.
-                chunkSnapshot.size = CAPTURE_SIZE;
+                chunkSnapshot.size = Config.getMapSize();
                 chunkSnapshot.updateSnapshot(level, player.blockPosition());
             }
             MinimapThreadManager.processSnapshotAsync(chunkSnapshot);

@@ -25,8 +25,8 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 public class WorldmapScreen extends ParentScreen {
-    public WorldmapScreen(Component title) {
-        super(title);
+    public WorldmapScreen() {
+        super(Component.literal("World Map"));
     }
 
     private static MenuWidget menuWidget;
@@ -316,7 +316,7 @@ public class WorldmapScreen extends ParentScreen {
     public void onClose() {
         super.onClose();
         menuWidget = null;
-        NativeImage image = new NativeImage(Config.mapSize, Config.mapSize, false);
+        NativeImage image = new NativeImage(Config.getMapSize(), Config.getMapSize(), false);
         DynamicTextureManager.replaceImageAndUpload(image);
         MinimapThreadManager.pause = false;
         MinimapThreadManager.tileStorage.cleanup_regions = true;

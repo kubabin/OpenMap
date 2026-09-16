@@ -19,7 +19,7 @@ public class Config {
             .define("circularMap", true);
     static final ModConfigSpec SPEC = BUILDER.build();
 
-    public static int mapSize = 512;
+    private static int mapSize = 128;
     public static boolean rotateMap = false;
     public static boolean circularMap = true;
 
@@ -28,5 +28,12 @@ public class Config {
         mapSize = mapSizeConfig.get();
         rotateMap = rotateMapConfig.get();
         circularMap = circularMapConfig.get();
+        DynamicTextureManager.reinitTexture();
+    }
+    static int getMapSize(){
+        return rotateMap ? (int) (Config.mapSize * 2) : Config.mapSize;
+    }
+    static int getBaseMapSize(){
+        return Config.mapSize;
     }
 }

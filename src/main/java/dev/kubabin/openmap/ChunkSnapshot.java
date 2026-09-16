@@ -19,7 +19,7 @@ public class ChunkSnapshot {
     };
 
     private ChunkSnapshot() {
-        colorData = new int[Config.mapSize*Config.mapSize];
+        colorData = new int[Config.getMapSize() * Config.getMapSize()];
         //topoMap = new short[Config.mapSize*Config.mapSize];
     }
     public static ChunkSnapshot createSnapshot(Level level, BlockPos playerPos, int size) {
@@ -49,7 +49,7 @@ public class ChunkSnapshot {
                     // Keep previous pixel data until the chunk is available.
                     continue;
                 }
-                int highestY = playerPos.getY();
+                int highestY;
                 if (level.dimensionType().hasCeiling()){
                     highestY = findCeilingDimensionSurfaceY(level, worldX, worldZ, playerPos.getY());
                 } else {
