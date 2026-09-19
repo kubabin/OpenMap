@@ -20,7 +20,6 @@ public class TileStorage {
                 int keyY = Integer.parseInt(key.split(";")[1]);
                 if (Math.abs(regionX - keyX) > 2 ||
                         Math.abs(regionZ - keyY) > 2) {
-                    Openmap.LOGGER.info("Cleaning up region {}, {}", keyX, keyY);
                     tiles.get(key).saveToDisk();
                     dirtyRegions.add(key);
                 }
@@ -31,7 +30,6 @@ public class TileStorage {
         }
         if (!tiles.containsKey(regionId)) {
             if (tiles.size() >= 25) return null;
-            Openmap.LOGGER.info("Opening region {}, {}", regionX, regionZ);
             CachedTile tile = new CachedTile(regionX, regionZ);
             tiles.put(regionId, tile);
             return tile;
