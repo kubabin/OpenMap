@@ -19,8 +19,6 @@ import org.joml.Matrix4f;
 
 import java.io.IOException;
 
-import static dev.kubabin.openmap.ClientModEvents.*;
-
 @EventBusSubscriber(modid = Openmap.MODID, value = Dist.CLIENT)
 public class MinimapRendering {
     private static ShaderInstance minimapShader;
@@ -96,10 +94,24 @@ public class MinimapRendering {
             guiGraphics.pose().translate(MAP_SIZE / 2.0, MAP_SIZE / 2.0, 0);
             guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(180.0f - yaw));
             guiGraphics.pose().translate(-MAP_SIZE / 2.0, -MAP_SIZE / 2.0, 0);*/
-            shader.safeGetUniform("angle").set((float) Math.toRadians(180f-yaw));
+
         }
+        shader.safeGetUniform("angle").set(
+                Config.rotateMap ?
+                (float) Math.toRadians(180f-yaw)
+                        : 0
+        );
         int size = Config.getBaseMapSize();
-        float sqr2 = 0.414213f;
+        float sqr2 = !Config.circularMap && Config.rotateMap ? 0.141213f : 0f;
+
+        // How many pixels does a block take on the map? (Percentage, eg 0.01 for 1% of the map)
+        float blockMapSize = 1f / (Config.getMapSize());
+        double playerX = mc.player.getX();
+        double playerZ = mc.player.getZ();
+        float xOffset = Math.clamp((float) (blockMapSize * (playerX - (int) playerX)), -1f, 1f);
+        float yOffset = Math.clamp((float) (blockMapSize * (playerZ - (int) playerZ)), -1f, 1f);
+        shader.safeGetUniform("UVOffset").set(xOffset, yOffset);
+
         if (shader != null) {
             // Draw the quad manually: GuiGraphics.blit() forces the position_tex_color
             // shader internally, which would ignore our minimap shader entirely
@@ -113,9 +125,6 @@ public class MinimapRendering {
             mapBuffer.addVertex(mapMatrix, size, size, 0).setUv(1-sqr2, 1f-sqr2);
             mapBuffer.addVertex(mapMatrix, size, 0, 0).setUv(1-sqr2, sqr2);
             BufferUploader.drawWithShader(mapBuffer.buildOrThrow());
-        }
-        if (Config.rotateMap) {
-            //guiGraphics.pose().popPose();
         }
         // Draw player marker in the center, rotated to match the player's yaw
         // (points straight up when the map itself rotates)
@@ -149,5 +158,8 @@ public class MinimapRendering {
         guiGraphics.drawString(mc.font,
                 String.valueOf(WaypointRendering.distance),
                 10, size+20, 0xFFFFFFFF, false);
+        guiGraphics.drawString(mc.font,
+                "X: " + xOffset + " Y: " + yOffset,
+                10, size+30, 0xFFFFFFFF, false);
     }
 }

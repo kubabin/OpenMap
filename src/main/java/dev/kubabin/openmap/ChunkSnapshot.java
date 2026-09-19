@@ -95,7 +95,7 @@ public class ChunkSnapshot {
     private static int findCeilingDimensionSurfaceY(Level level, int worldX, int worldZ, int playerY) {
         int minY = level.getMinBuildHeight();
         int maxY = level.getMaxBuildHeight() - 1;
-        int clampedPlayerY = Math.max(minY, Math.min(playerY, maxY));
+        int clampedPlayerY = Math.clamp(playerY, minY, maxY);
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(worldX, clampedPlayerY, worldZ);
         BlockState current = level.getBlockState(pos);

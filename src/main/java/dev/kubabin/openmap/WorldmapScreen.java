@@ -91,7 +91,7 @@ public class WorldmapScreen extends ParentScreen {
     private void renderTile(GuiGraphics guiGraphics, int tileX, int tileY) {
         CachedTile tile = MinimapThreadManager.tileStorage.openRegionFile(tileX, tileY);
         if (tile == null) return;
-        DynamicTexture texture = DynamicTextureManager.getTexture();
+        DynamicTexture texture = DynamicTextureManager.worldmapTexture;
         if (texture == null) {
             return;
         }
@@ -118,6 +118,7 @@ public class WorldmapScreen extends ParentScreen {
             GlStateManager._pixelStore(GL11.GL_UNPACK_SKIP_ROWS, 0);
             GlStateManager._pixelStore(GL11.GL_UNPACK_ALIGNMENT, 1);
 
+            //Openmap.LOGGER.info("Uploading tile {}, {}", tile.x, tile.z);
             GL11.glTexSubImage2D(
                     GL11.GL_TEXTURE_2D,
                     0,
@@ -147,6 +148,9 @@ public class WorldmapScreen extends ParentScreen {
         // Top left
         bufferBuilder.addVertex(matrix4f, x, y, 0).setUv(0, 0);
         BufferUploader.drawWithShader(bufferBuilder.buildOrThrow());
+        //guiGraphics.fill((int) x, (int) y, (int) (x+width), (int) (y+height), 0xFFFFFFFF);
+        guiGraphics.drawString(Minecraft.getInstance().font,
+                "X: " + tile.x + " Z: " + tile.z, (int) x, (int) y, 0xffffffff);
     }
     /*private void renderTopo(GuiGraphics guiGraphics, int tileX, int tileY){
         DynamicTexture texture = DynamicTextureManager.getTexture();

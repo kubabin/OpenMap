@@ -9,7 +9,8 @@
     { "name": "Circular", "type": "float", "count": 1, "values": [ 0.0 ] },
     { "name": "MaskUvMin", "type": "float", "count": 2, "values": [ 0.0, 0.0 ] },
     { "name": "MaskUvSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] },
-    { "name": "angle", "type": "float", "count": 1, "values": [ 1.0 ] }
+    { "name": "angle", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "UVOffset", "type": "float", "count": 2, "values": [ 0.0, 0.0 ] }
   ],
   "samplers": [
     { "name": "Sampler0" }

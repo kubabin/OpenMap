@@ -28,10 +28,9 @@ public class WaypointRendering {
     private static final float MIN_WAYPOINT_MARKER_SCALE = 0.01f;
     private static final float MAX_WAYPOINT_MARKER_SCALE = 2.0f;
     public static double distance;
-    static RenderLevelStageEvent.Stage wp_stage;
+
     @SubscribeEvent
     public static void onRenderWaypoints(RenderLevelStageEvent event) {
-        //System.out.println("Stage: " + event.getStage());
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
@@ -39,7 +38,6 @@ public class WaypointRendering {
         SimpleLayerProvider waypointLayer = (SimpleLayerProvider) OpenmapApi.getLayer(Openmap.LAYER_WAYPOINTS);
         if (!waypointLayer.isVisible()) return;
 
-        //MultiBufferSource.BufferSource bufferSource = MultiBufferSource.immediate(new ByteBufferBuilder(4_096));
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         Vec3 cameraPosition = event.getCamera().getPosition();
         PoseStack poseStack = event.getPoseStack();
@@ -52,7 +50,7 @@ public class WaypointRendering {
             double waypointX = waypoint.x;
             double waypointY = waypoint.getWorldY();
             double waypointZ = waypoint.y;
-            double horizontalDistanceSqr = mc.player.distanceToSqr(waypointX, mc.player.getY(), waypointZ);
+            double horizontalDistanceSqr = mc.player.distanceToSqr(waypointX, waypointY, waypointZ);
             float markerScale = Mth.clamp(
                     (float) Math.sqrt(mc.player.distanceToSqr(waypointX, waypointY, waypointZ))
                             * WAYPOINT_MARKER_SCALE_PER_BLOCK,
@@ -67,7 +65,7 @@ public class WaypointRendering {
 
             float alpha = (float) Math.min(horizontalDistanceSqr / WAYPOINT_BEAM_DISTANCE_SQR, 1f);
             distance = alpha;
-            renderWaypointBeam(poseStack, cameraPosition, waypointX, waypointY, waypointZ,
+            renderWaypointBeam(poseStack, waypointY,
                     mc.level.getMaxBuildHeight(), alpha);
 
             renderWaypointMarker(
@@ -81,7 +79,7 @@ public class WaypointRendering {
     }
 
     private static void renderWaypointBeam(
-            PoseStack poseStack, Vec3 cameraPosition, double x, double y, double z, int maxBuildHeight, float alpha
+            PoseStack poseStack, double y, int maxBuildHeight, float alpha
     ) {
         poseStack.pushPose();
         Matrix4f matrix = poseStack.last().pose();

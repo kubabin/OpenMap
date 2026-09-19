@@ -8,10 +8,13 @@ uniform mat4 ModelViewMat;
 uniform mat4 ProjMat;
 uniform vec2 MaskUvMin;
 uniform vec2 MaskUvSize;
+uniform vec2 UVOffset;
+uniform float angle;
 
 out vec2 texCoord0;
 
 void main() {
     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
-    texCoord0 = UV0 * vec2(2) - vec2(0.5);
+
+    texCoord0 = UV0;
 }

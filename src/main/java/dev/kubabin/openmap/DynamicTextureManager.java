@@ -8,9 +8,12 @@ import net.minecraft.resources.ResourceLocation;
 public class DynamicTextureManager {
     public static final ResourceLocation DYNAMIC_TEXTURE_LOCATION =
             ResourceLocation.fromNamespaceAndPath(Openmap.MODID, "minimap_texture");
+    public static final ResourceLocation WORLDMAP_TEXTURE_LOCATION =
+            ResourceLocation.fromNamespaceAndPath(Openmap.MODID, "worldmap_tile");
 
     private static DynamicTexture dynamicTexture;
     protected static NativeImage nativeImage;
+    protected static DynamicTexture worldmapTexture;
     public static boolean readyToUpload = false;
     private static final Object IMAGE_LOCK = new Object();
     public static boolean loaded = false;
@@ -24,6 +27,9 @@ public class DynamicTextureManager {
         // Register it into Minecraft's texture engine
         Minecraft.getInstance().getTextureManager().register(DYNAMIC_TEXTURE_LOCATION, dynamicTexture);
         loaded = true;
+
+        worldmapTexture = new DynamicTexture(512, 512, false);
+        worldmapTexture.setFilter(true, false);
     }
     public static void reinitTexture() {
         if (!loaded) return;
