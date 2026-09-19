@@ -4,5 +4,7 @@
   "key.openmap.players": "Players",
   "key.openmap.delete": "Delete",
   "key.openmap.teleport": "Teleport",
-  "key.openmap.centerplayer": "Center the map on the player"
+  "key.openmap.centerplayer": "Center the map on the player",
+  "key.openmap.waypoint.create": "Create Waypoint",
+  "key.openmap.waypoint.name": "Waypoint name..."
 }

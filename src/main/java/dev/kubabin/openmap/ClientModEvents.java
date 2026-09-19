@@ -16,6 +16,7 @@ import net.minecraft.client.gui.screens.DeathScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -81,7 +82,7 @@ public class ClientModEvents {
         // Built-in Global Menu Items
         OpenmapApi.globalMenu.put("teleport", new MenuItem(
                 ResourceLocation.withDefaultNamespace("textures/item/ender_pearl.png"),
-                "Teleport",
+                Component.translatable("key.openmap.teleport"),
                 (mouseX, mouseY) -> {
                     Minecraft mc = Minecraft.getInstance();
                     double worldX = TileWidget.screenToWorldX(mouseX);
@@ -97,7 +98,7 @@ public class ClientModEvents {
         ));
         OpenmapApi.globalMenu.put("add-waypoint", new MenuItem(
                 ResourceLocation.fromNamespaceAndPath(MODID,"textures/gui/menu_icons/plus.png"),
-                "Add waypoint",
+                Component.translatable("key.openmap.waypoint.create"),
                 ((mouseX, mouseY) -> {
                     ParentScreen screen = (ParentScreen) Minecraft.getInstance().screen;
                     if (screen == null) return;

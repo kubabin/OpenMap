@@ -20,7 +20,7 @@ public class CreateWaypointScreen extends NestedScreen {
     private EditBox nameEditBox;
     private final ParentScreen parent;
     public CreateWaypointScreen(int x, int y, ParentScreen parent) {
-        super(x, y, Component.literal("Create Waypoint"));
+        super(x, y, Component.translatable("key.openmap.waypoint.create"));
         this.waypointX = TileWidget.screenToWorldX(x);
         this.waypointZ = TileWidget.screenToWorldZ(y);
         this.parent = parent;
@@ -33,16 +33,16 @@ public class CreateWaypointScreen extends NestedScreen {
             this.minecraft = Minecraft.getInstance();
         }
         nameEditBox = new EditBox(minecraft.font, 80, 20,
-                Component.literal("Waypoint name...")
+                Component.translatable("key.openmap.waypoint.name")
         );
         nameEditBox.setMaxLength(128);
         this.addRenderableWidget(nameEditBox);
         this.addRenderableWidget(Button.builder(
-                Component.literal("Done"),
+                Component.translatable("gui.done"),
                 button -> this.onDone()
         ).pos(0, 20).width(40).build());
         this.addRenderableWidget(Button.builder(
-                Component.literal("Cancel"),
+                Component.translatable("gui.cancel"),
                 button -> this.onCancel()
         ).pos(40, 20).width(40).build());
     }

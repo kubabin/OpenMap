@@ -30,7 +30,7 @@ public class WaypointMarker extends IconMarker {
         if (Minecraft.getInstance().player.getPermissionLevel() >= 2) {
             this.menuItems.put("teleport", new MenuItem(
                     ResourceLocation.withDefaultNamespace("textures/item/ender_pearl.png"),
-                    Component.translatable("key.openmap.teleport").getString(),
+                    Component.translatable("key.openmap.teleport"),
                     (x,y) -> {
                         Minecraft.getInstance().player.connection.sendCommand(
                                 "tp "+wp.x()+" "+ wp.y() +" "+wp.z()
@@ -45,7 +45,7 @@ public class WaypointMarker extends IconMarker {
         this.menuItems.put("delete", new MenuItem(
                 ResourceLocation.fromNamespaceAndPath(Openmap.MODID,
                         "textures/gui/menu_icons/delete.png"),
-                Component.translatable("key.openmap.delete").getString(),
+                Component.translatable("key.openmap.delete"),
                 (x,y) -> {
                     SimpleLayerProvider wpLayer = (SimpleLayerProvider) OpenmapApi.getLayer(Openmap.LAYER_WAYPOINTS);
                     PacketDistributor.sendToServer(

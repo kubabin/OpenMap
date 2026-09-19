@@ -26,7 +26,7 @@ import java.util.Map;
 
 public class WorldmapScreen extends ParentScreen {
     public WorldmapScreen() {
-        super(Component.literal("World Map"));
+        super(Component.translatable("key.openmap.worldmap"));
     }
 
     private static MenuWidget menuWidget;
