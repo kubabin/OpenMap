@@ -7,10 +7,12 @@ import dev.kubabin.openmap.api.MenuItem;
 import dev.kubabin.openmap.api.markers.PlayerMarker;
 import dev.kubabin.openmap.layers.SimpleLayerProvider;
 import dev.kubabin.openmap.waypoints.CreateWaypointScreen;
+import dev.kubabin.openmap.waypoints.Waypoint;
 import dev.kubabin.openmap.widgets.TileWidget;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.DeathScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -26,6 +28,7 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.lwjgl.glfw.GLFW;
 
 import java.nio.file.Files;
+import java.util.UUID;
 
 import static dev.kubabin.openmap.CachedTile.getSessionIdentifier;
 import static dev.kubabin.openmap.Openmap.MODID;
@@ -61,7 +64,7 @@ public class ClientModEvents {
             if (mc.level == null) return;
             playerLayer.markers.clear();
             mc.level.players().forEach(abstractClientPlayer -> {
-                if (abstractClientPlayer.isInvisibleTo(mc.player)) return;
+                if (mc.player != null && abstractClientPlayer.isInvisibleTo(mc.player)) return;
                 IconMarker marker = new PlayerMarker(abstractClientPlayer.getSkin());
                 marker.x = abstractClientPlayer.position().x;
                 marker.y = abstractClientPlayer.position().z;
@@ -166,5 +169,17 @@ public class ClientModEvents {
         if (event.isPaused()){
             MinimapThreadManager.tileStorage.saveAll();
         }
+    }
+    @SubscribeEvent
+    public static void onPlayerDeath(ScreenEvent.Opening event){
+        if (!(event.getScreen() instanceof DeathScreen screen)) return;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return;
+        OpenmapApi.addWaypoint(new Waypoint(
+                mc.player.getX(), mc.player.getY(), mc.player.getZ(),
+                screen.causeOfDeath.getString(),
+                ResourceLocation.withDefaultNamespace("textures/map/decorations/red_x.png").toString(),
+                UUID.randomUUID()
+                ));
     }
 }

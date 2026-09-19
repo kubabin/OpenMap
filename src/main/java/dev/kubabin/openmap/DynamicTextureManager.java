@@ -8,8 +8,6 @@ import net.minecraft.resources.ResourceLocation;
 public class DynamicTextureManager {
     public static final ResourceLocation DYNAMIC_TEXTURE_LOCATION =
             ResourceLocation.fromNamespaceAndPath(Openmap.MODID, "minimap_texture");
-    public static final ResourceLocation WORLDMAP_TEXTURE_LOCATION =
-            ResourceLocation.fromNamespaceAndPath(Openmap.MODID, "worldmap_tile");
 
     private static DynamicTexture dynamicTexture;
     protected static NativeImage nativeImage;
@@ -29,7 +27,7 @@ public class DynamicTextureManager {
         loaded = true;
 
         worldmapTexture = new DynamicTexture(512, 512, false);
-        worldmapTexture.setFilter(true, false);
+        worldmapTexture.setFilter(false, false);
     }
     public static void reinitTexture() {
         if (!loaded) return;

@@ -3,7 +3,6 @@ package dev.kubabin.openmap;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
-import dev.kubabin.openmap.waypoints.WaypointRendering;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -70,8 +69,6 @@ public class MinimapRendering {
         if (mc.options.hideGui || mc.player == null || mc.level == null) return;
         if (mc.getDebugOverlay().showDebugScreen()) return;
 
-
-
         RenderSystem.disableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.enableBlend();
@@ -88,34 +85,26 @@ public class MinimapRendering {
 
         float yaw = mc.player.getViewYRot(deltaTracker.getGameTimeDeltaPartialTick(true));
 
-        // Rotate the map around its center so the player's facing direction points up
-        if (Config.rotateMap) {
-            /*guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(MAP_SIZE / 2.0, MAP_SIZE / 2.0, 0);
-            guiGraphics.pose().mulPose(Axis.ZP.rotationDegrees(180.0f - yaw));
-            guiGraphics.pose().translate(-MAP_SIZE / 2.0, -MAP_SIZE / 2.0, 0);*/
-
-        }
-        shader.safeGetUniform("angle").set(
-                Config.rotateMap ?
-                (float) Math.toRadians(180f-yaw)
-                        : 0
-        );
         int size = Config.getBaseMapSize();
         float sqr2 = !Config.circularMap && Config.rotateMap ? 0.141213f : 0f;
 
-        // How many pixels does a block take on the map? (Percentage, eg 0.01 for 1% of the map)
-        float blockMapSize = 1f / (Config.getMapSize());
-        double playerX = mc.player.getX();
-        double playerZ = mc.player.getZ();
-        float xOffset = Math.clamp((float) (blockMapSize * (playerX - (int) playerX)), -1f, 1f);
-        float yOffset = Math.clamp((float) (blockMapSize * (playerZ - (int) playerZ)), -1f, 1f);
-        shader.safeGetUniform("UVOffset").set(xOffset, yOffset);
-
         if (shader != null) {
+            // How many pixels does a block take on the map? (Percentage, eg 0.01 for 1% of the map)
+            float blockMapSize = 1f / (Config.getMapSize());
+            double playerX = mc.player.getX();
+            double playerZ = mc.player.getZ();
+            float xOffset = Math.clamp((float) (blockMapSize * (playerX - (int) playerX)), -1f, 1f);
+            float yOffset = Math.clamp((float) (blockMapSize * (playerZ - (int) playerZ)), -1f, 1f);
+            shader.safeGetUniform("UVOffset").set(xOffset, yOffset);
+
             // Draw the quad manually: GuiGraphics.blit() forces the position_tex_color
             // shader internally, which would ignore our minimap shader entirely
             Matrix4f mapMatrix = guiGraphics.pose().last().pose();
+            shader.safeGetUniform("angle").set(
+                    Config.rotateMap ?
+                            (float) Math.toRadians(180f-yaw)
+                            : 0
+            );
             shader.safeGetUniform("Circular").set(Config.circularMap ? 1.0f : 0.0f);
             shader.safeGetUniform("MaskUvMin").set(0f, 0f);
             shader.safeGetUniform("MaskUvSize").set(1.0f, 1.0f);
@@ -155,11 +144,5 @@ public class MinimapRendering {
         guiGraphics.drawString(mc.font,
                 "X: " + playerPos.getX() + "  Y: " + playerPos.getY() + "  Z: " + playerPos.getZ(),
                 10, size+10, 0xFFFFFFFF, false);
-        guiGraphics.drawString(mc.font,
-                String.valueOf(WaypointRendering.distance),
-                10, size+20, 0xFFFFFFFF, false);
-        guiGraphics.drawString(mc.font,
-                "X: " + xOffset + " Y: " + yOffset,
-                10, size+30, 0xFFFFFFFF, false);
     }
 }

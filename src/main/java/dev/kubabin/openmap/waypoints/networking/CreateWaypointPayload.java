@@ -82,4 +82,8 @@ public record CreateWaypointPayload(
     public Waypoint waypoint(){
         return new Waypoint(x,y,z,name,icon,this.uuid);
     }
+    public static CreateWaypointPayload from(Waypoint waypoint){
+        return new CreateWaypointPayload(waypoint.x(), waypoint.y(), waypoint.z(), waypoint.name(), waypoint.icon(),
+                waypoint.uuid());
+    }
 }

@@ -27,7 +27,6 @@ public class WaypointRendering {
     private static final float WAYPOINT_MARKER_SCALE_PER_BLOCK = 0.004f;
     private static final float MIN_WAYPOINT_MARKER_SCALE = 0.01f;
     private static final float MAX_WAYPOINT_MARKER_SCALE = 2.0f;
-    public static double distance;
 
     @SubscribeEvent
     public static void onRenderWaypoints(RenderLevelStageEvent event) {
@@ -52,7 +51,7 @@ public class WaypointRendering {
             double waypointZ = waypoint.y;
             double horizontalDistanceSqr = mc.player.distanceToSqr(waypointX, waypointY, waypointZ);
             float markerScale = Mth.clamp(
-                    (float) Math.sqrt(mc.player.distanceToSqr(waypointX, waypointY, waypointZ))
+                    (float) Math.sqrt(horizontalDistanceSqr)
                             * WAYPOINT_MARKER_SCALE_PER_BLOCK,
                     MIN_WAYPOINT_MARKER_SCALE,
                     MAX_WAYPOINT_MARKER_SCALE
@@ -64,12 +63,11 @@ public class WaypointRendering {
 
 
             float alpha = (float) Math.min(horizontalDistanceSqr / WAYPOINT_BEAM_DISTANCE_SQR, 1f);
-            distance = alpha;
             renderWaypointBeam(poseStack, waypointY,
                     mc.level.getMaxBuildHeight(), alpha);
 
             renderWaypointMarker(
-                    poseStack, bufferSource, event, waypoint, waypointX, waypointY, waypointZ, cameraPosition, markerScale
+                    poseStack, bufferSource, event, waypoint, markerScale
             );
             poseStack.popPose();
         }
@@ -90,6 +88,13 @@ public class WaypointRendering {
         addBeamPlane(vertices, matrix, height, true, alpha);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
         RenderSystem.disableCull();
+        // Marker icon RenderType's TRANSLUCENT_TRANSPARENCY clear state calls
+        // RenderSystem.disableBlend() whenever its small (256 vertex) buffer
+        // auto-flushes mid-loop, leaking into subsequent immediate draws. Force
+        // blend back on right before drawing so alpha fade isn't lost for
+        // waypoints rendered after that flush.
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
         BufferUploader.drawWithShader(vertices.buildOrThrow());
         poseStack.popPose();
     }
@@ -112,7 +117,7 @@ public class WaypointRendering {
 
     private static void renderWaypointMarker(
             PoseStack poseStack, MultiBufferSource bufferSource, RenderLevelStageEvent event,
-            WaypointMarker waypoint, double x, double y, double z, Vec3 cameraPosition, float markerScale
+            WaypointMarker waypoint, float markerScale
     ) {
         poseStack.pushPose();
 
