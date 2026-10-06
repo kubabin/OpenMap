@@ -1,6 +1,5 @@
 package dev.kubabin.openmap;
 
-import com.llamalad7.mixinextras.lib.apache.commons.tuple.Pair;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -19,6 +18,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
@@ -26,7 +26,6 @@ import org.lwjgl.opengl.GL11;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class WorldmapScreen extends ParentScreen {
 
@@ -34,7 +33,6 @@ public class WorldmapScreen extends ParentScreen {
     private static MenuWidget menuWidget;
     public static MapTool activeTool;
     private double transition_ticks = -1;
-    public static final int TRANSITION_LENGTH = 20; // ticks
     private static boolean isGlobalMenu; // Is menuWidget the global menu or a marker's menu?
     private double transition_start_x;
     private double transition_start_y;
@@ -43,6 +41,7 @@ public class WorldmapScreen extends ParentScreen {
     public static double translateX = 0;
     public static double translateY = 0;
     public static double scale = 1;
+    public static Level currentLevel;
 
     public WorldmapScreen() {
         super(Component.translatable("key.openmap.worldmap"));
@@ -51,30 +50,24 @@ public class WorldmapScreen extends ParentScreen {
     @Override
     protected void init() {
         super.init();
-        MinimapThreadManager.tileStorage.cleanup_regions = false;
-        MinimapThreadManager.updateMinimap = false;
+        MapThread.tileStorage.cleanup_regions = false;
+        MapThread.updateMinimap = false;
         Minecraft mc = Minecraft.getInstance();
         BlockPos playerPos = mc.player.blockPosition();
 
-        for (LayerProvider layer : OpenmapApi.layers.values()) {
+        currentLevel = mc.level;
+        for (LayerProvider layer : OpenmapApi.layers) {
             layer.updateInitialData();
         }
 
-        // Other widgets
-        // XYZ position
-        this.addRenderableOnly(
-                new StringWidget(
-                        Component.literal("X: " + playerPos.getX() + "  Y: " + playerPos.getY() + "  Z: " + playerPos.getZ()),
-                        Minecraft.getInstance().font)
-        );
+
         int x = 1;
 
         // Layer toggle checkboxes
         int y = 10;
-        for (Map.Entry<String, LayerProvider> entry : OpenmapApi.layers.entrySet()) {
-            String key = entry.getKey();
-            LayerProvider layer = entry.getValue();
-            Checkbox checkbox = Checkbox.builder(Component.translatable(key), Minecraft.getInstance().font)
+        for (LayerProvider layer : OpenmapApi.layers) {
+            Component key = layer.getName();
+            Checkbox checkbox = Checkbox.builder(key, Minecraft.getInstance().font)
                     .onValueChange((checkbox1, b) -> {
                         if (b) {
                             layer.show();
@@ -117,7 +110,7 @@ public class WorldmapScreen extends ParentScreen {
     }
 
     private void renderTile(GuiGraphics guiGraphics, int tileX, int tileY) {
-        CachedTile tile = MinimapThreadManager.tileStorage.tryRegionFile(tileX, tileY);
+        CachedTile tile = MapThread.tileStorage.tryRegionFile(tileX, tileY);
         if (tile == null) return;
         DynamicTexture texture = DynamicTextureManager.worldmapTexture;
         if (texture == null) {
@@ -203,11 +196,8 @@ public class WorldmapScreen extends ParentScreen {
         }
 
         List<Component> tooltip = new ArrayList<>();
-        for (LayerProvider layer : OpenmapApi.layers.values()) {
-            Component layerTooltip = layer.render(guiGraphics, mouseX, mouseY);
-            if (layerTooltip != null && !layerTooltip.getString().isEmpty() && !layerTooltip.getString().isBlank()) {
-                tooltip.add(layerTooltip);
-            }
+        for (LayerProvider layer : OpenmapApi.layers) {
+            layer.render(guiGraphics, mouseX, mouseY, tooltip);
         }
 
         guiGraphics.pose().popPose();
@@ -215,7 +205,15 @@ public class WorldmapScreen extends ParentScreen {
 
         double cursorWorldX = screenToWorldX(mouseX);
         double cursorWorldZ = screenToWorldZ(mouseY);
-        guiGraphics.drawString(Minecraft.getInstance().font, "World: X: " + (int) (cursorWorldX/16) + " Z: " + (int) (cursorWorldZ/16), 5, guiGraphics.guiHeight() - 15, 0xFFFFFFFF);
+        guiGraphics.drawString(Minecraft.getInstance().font,
+                "World: X: " + (int) (cursorWorldX/16) + " Z: " + (int) (cursorWorldZ/16),
+                25, guiGraphics.guiHeight() - 15, 0xFFFFFFFF);
+        // player pos
+        guiGraphics.drawString(Minecraft.getInstance().font,
+                "Player: X: " + Minecraft.getInstance().player.getBlockX() +
+                        " Y: " + Minecraft.getInstance().player.getBlockY() +
+                        " Z: " + Minecraft.getInstance().player.getBlockZ(),
+                25, guiGraphics.guiHeight() - 30, 0xFFFFFFFF);
         renderSidebar(guiGraphics, mouseX, mouseY, partialTicks);
         for (Renderable renderable : this.renderables) {
             renderable.render(guiGraphics, mouseX, mouseY, partialTicks);
@@ -239,12 +237,11 @@ public class WorldmapScreen extends ParentScreen {
                 transition_ticks = -1;
             }
         }
-        guiGraphics.drawString(Minecraft.getInstance().font, "Zoom: " + scale, 5, guiGraphics.guiHeight() - 30, 0xFFFFFFFF);
     }
 
     private void renderSidebar(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
         // Render the sidebar background
-        guiGraphics.fill(0, 0, 20, height, 0xFF0000aa);
+        guiGraphics.fill(0, 0, 20, height, 0xFF5380a3);
     }
 
     @Override
@@ -282,8 +279,7 @@ public class WorldmapScreen extends ParentScreen {
 
         if (activeTool != null && activeTool.mouseClicked(mouseX, mouseY, button)) return true;
 
-        for (String key : OpenmapApi.layers.keySet()) {
-            LayerProvider layer = OpenmapApi.getLayer(key);
+        for (LayerProvider layer : OpenmapApi.layers) {
             if (layer.clicked((int) mouseX, (int) mouseY, button)) {
                 return true;
             }
@@ -328,18 +324,21 @@ public class WorldmapScreen extends ParentScreen {
     @Override
     public void onClose() {
         super.onClose();
+        for (LayerProvider layer : OpenmapApi.layers) {
+            layer.onMapClose();
+        }
         menuWidget = null;
         NativeImage image = new NativeImage(Config.getMapSize(), Config.getMapSize(), false);
         DynamicTextureManager.replaceImageAndUpload(image);
-        MinimapThreadManager.updateMinimap = true;
-        MinimapThreadManager.tileStorage.cleanup_regions = true;
+        MapThread.updateMinimap = true;
+        MapThread.tileStorage.cleanup_regions = true;
     }
 
     @Override
     public void tick() {
         super.tick();
 
-        for (LayerProvider layer : OpenmapApi.layers.values()) {
+        for (LayerProvider layer : OpenmapApi.layers) {
             layer.updateData();
         }
     }

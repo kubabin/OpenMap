@@ -2,14 +2,10 @@ package dev.kubabin.openmap.waypoints;
 
 import dev.kubabin.openmap.CachedTile;
 import dev.kubabin.openmap.Openmap;
-import dev.kubabin.openmap.api.OpenmapApi;
-import dev.kubabin.openmap.api.markers.IconMarker;
-import dev.kubabin.openmap.layers.SimpleLayerProvider;
 import dev.kubabin.openmap.waypoints.networking.CreateWaypointPayload;
 import dev.kubabin.openmap.waypoints.networking.DeleteWaypointPayload;
 import dev.kubabin.openmap.waypoints.networking.WaypointSyncPayload;
 import net.minecraft.nbt.*;
-import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -59,7 +55,6 @@ public class WaypointClientStorage {
     public static void addWaypoint(Waypoint waypoint){
         if (isClientSide){
             waypoints.add(waypoint);
-            updateWaypointLayer();
         } else {
             PacketDistributor.sendToServer(CreateWaypointPayload.from(waypoint));
         }
@@ -73,7 +68,6 @@ public class WaypointClientStorage {
                     break;
                 }
             }
-            updateWaypointLayer();
         } else {
             PacketDistributor.sendToServer(new DeleteWaypointPayload(uuid));
         }
@@ -82,16 +76,6 @@ public class WaypointClientStorage {
                                           final IPayloadContext context){
         context.enqueueWork(() -> {
             waypoints = payload.waypoints();
-            updateWaypointLayer();
         });
-    }
-    public static void updateWaypointLayer(){
-        SimpleLayerProvider waypointLayer = (SimpleLayerProvider) OpenmapApi.getLayer(Openmap.LAYER_WAYPOINTS);
-        waypointLayer.markers.clear();
-        for (Waypoint wp : waypoints){
-            IconMarker wpMarker = new WaypointMarker(wp);
-            wpMarker.tooltip = Component.literal(wp.name());
-            waypointLayer.markers.add(wpMarker);
-        }
     }
 }

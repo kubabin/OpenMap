@@ -45,7 +45,7 @@ public class ClaimTool extends MapTool{
 
     @Override
     public ResourceLocation getIcon() {
-        return ResourceLocation.fromNamespaceAndPath(Openmap.MODID, "textures/gui/player.png");
+        return ResourceLocation.fromNamespaceAndPath(Openmap.MODID, "textures/gui/pencil.png");
     }
 
     @Override

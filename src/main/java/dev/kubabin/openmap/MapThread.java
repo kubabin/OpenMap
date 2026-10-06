@@ -3,16 +3,11 @@ package dev.kubabin.openmap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-
-public class MinimapThreadManager {
+public class MapThread {
     public static final TileStorage tileStorage = new TileStorage();
-    private static ChunkSnapshot chunkSnapshot;
     public static boolean pause = false;
     public static boolean updateMinimap = true;
     public static Thread mapperThread;
@@ -74,7 +69,7 @@ public class MinimapThreadManager {
     }
 
     public static void startThread() {
-        mapperThread = new Thread(MinimapThreadManager::threadRun);
+        mapperThread = new Thread(MapThread::threadRun);
         mapperThread.setName("OpenMap Mapper Thread");
         mapperThread.start();
     }

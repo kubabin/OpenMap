@@ -9,10 +9,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.material.WaterFluid;
 
 import static net.minecraft.world.level.material.MapColor.GRASS;
-import static net.minecraft.world.level.material.MapColor.WATER;
 
 public class ChunkSnapshot {
     public int centerX, centerZ; // Block position the snapshot is centered on
@@ -63,7 +61,7 @@ public class ChunkSnapshot {
                 heightData[index] = highestY;
                 mapColors[index] = state.getMapColor(level, blockPos);
 
-                if (!state.getFluidState().isEmpty() && state.getFluidState().is(FluidTags.WATER) && !level.dimensionType().hasCeiling()){
+                if (!state.getFluidState().isEmpty() && state.getFluidState().is(FluidTags.WATER)){
                     int floorY;
                     for (floorY = highestY - 1; floorY >= level.getMinBuildHeight(); floorY--) {
                         blockPos = new BlockPos(worldX, floorY, worldZ);
@@ -73,7 +71,7 @@ public class ChunkSnapshot {
                         }
                         heightData[index] = floorY;
                     }
-                    blockPos = new BlockPos(worldX, floorY -2, worldZ);
+                    blockPos = new BlockPos(worldX, floorY , worldZ);
                     state = level.getBlockState(blockPos);
                     mapColors[index] = state.getMapColor(level, blockPos);
                     int diff = highestY - floorY;
@@ -82,9 +80,6 @@ public class ChunkSnapshot {
                         heightData[index] = floorY | (diff << 16);
                     }
                 }
-
-
-
             }
         }
 
@@ -111,12 +106,11 @@ public class ChunkSnapshot {
                     this.colorData[index] = tintColor(0.5, this.colorData[index],tint);
                 }
 
-                if (Config.underwaterHillshading){
-                    this.colorData[index] = multColor(
-                            getBrightness(heightData, size, x, z),
-                            colorData[index]
-                    ) | 0xFF000000;
-                }
+                this.colorData[index] = multColor(
+                        getBrightness(heightData, size, x, z),
+                        colorData[index]
+                ) | 0xFF000000;
+
 
                 if (waterDiff > 0) {
                     int tint = BiomeColors.getAverageWaterColor(level, new BlockPos(worldX, heightInfo, worldZ));
@@ -125,12 +119,6 @@ public class ChunkSnapshot {
                     // Determine the tint factor based on the water depth
                     double tintFactor = Math.clamp(waterDiff / 10.0, 0.7, 0.9); // Cap the tint factor at 0.9
                     this.colorData[index] = tintColor(tintFactor, this.colorData[index],tint);
-                }
-                if (!Config.underwaterHillshading && waterDiff == 0) {
-                    this.colorData[index] = multColor(
-                            getBrightness(heightData, size, x, z),
-                            colorData[index]
-                    ) | 0xFF000000;
                 }
             }
         }

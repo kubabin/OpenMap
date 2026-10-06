@@ -2,17 +2,15 @@ package dev.kubabin.openmap;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.kubabin.openmap.api.OpenmapApi;
-import dev.kubabin.openmap.api.markers.IconMarker;
-import dev.kubabin.openmap.api.markers.PlayerMarker;
+import dev.kubabin.openmap.compat.CreateCompat;
 import dev.kubabin.openmap.compat.OpacCompat;
 import dev.kubabin.openmap.datasource.EntitySource;
-import dev.kubabin.openmap.layers.PlayerLayer;
-import dev.kubabin.openmap.layers.SimpleLayerProvider;
+import dev.kubabin.openmap.datasource.PlayerSource;
+import dev.kubabin.openmap.datasource.WaypointSource;
 import dev.kubabin.openmap.layers.StreamedLayer;
 import dev.kubabin.openmap.menuitems.CreateWaypointMenuItem;
 import dev.kubabin.openmap.menuitems.TeleportMenuItem;
 import dev.kubabin.openmap.sidebuttons.CenterPlayerButton;
-import dev.kubabin.openmap.tools.ClaimTool;
 import dev.kubabin.openmap.waypoints.Waypoint;
 import dev.kubabin.openmap.waypoints.WaypointClientStorage;
 import dev.kubabin.openmap.waypoints.networking.WaypointSyncPayload;
@@ -22,8 +20,8 @@ import net.minecraft.client.gui.screens.DeathScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
@@ -40,6 +38,7 @@ import java.util.UUID;
 import static dev.kubabin.openmap.CachedTile.getSessionIdentifier;
 import static dev.kubabin.openmap.Openmap.MODID;
 
+@OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
 public class ClientModEvents {
     private static int tickCounter = 0;
@@ -65,14 +64,12 @@ public class ClientModEvents {
             Openmap.LOGGER.warn("Couldn't create openmap_tiles_cache directory: {}", e.getMessage());
         }
         OpacCompat.init();
-        // Built-in markers
-        SimpleLayerProvider playerLayer = new PlayerLayer();
-        OpenmapApi.addLayer(Openmap.LAYER_PLAYERS, playerLayer);
 
-        SimpleLayerProvider waypointLayer = new SimpleLayerProvider();
-        OpenmapApi.addLayer(Openmap.LAYER_WAYPOINTS, waypointLayer);
-
-        OpenmapApi.addLayer("entities", new StreamedLayer(new EntitySource()));
+        // Built-in layers
+        OpenmapApi.addLayer(new StreamedLayer(new EntitySource()));
+        CreateCompat.init();
+        OpenmapApi.addLayer(new StreamedLayer(new WaypointSource()));
+        OpenmapApi.addLayer(new StreamedLayer(new PlayerSource()));
 
         // Built-in Global Menu Items
         OpenmapApi.globalMenu.put("teleport", TeleportMenuItem.createMenuItem());
@@ -138,7 +135,7 @@ public class ClientModEvents {
     @SubscribeEvent
     public static void onPlayerJoin(EntityJoinLevelEvent event){
         if (event.getEntity() == Minecraft.getInstance().player){
-            MinimapThreadManager.startThread();
+            MapThread.startThread();
         }
     }
     @SubscribeEvent
@@ -150,14 +147,14 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void onLevelUnload(LevelEvent.Unload event){
-        MinimapThreadManager.stop();
-        MinimapThreadManager.tileStorage.cleanup();
+        MapThread.stop();
+        MapThread.tileStorage.cleanup();
     }
 
     @SubscribeEvent
     public static void onClientPause(ClientPauseChangeEvent.Post event){
         if (event.isPaused()){
-            MinimapThreadManager.tileStorage.saveAll();
+            MapThread.tileStorage.saveAll();
         }
     }
     @SubscribeEvent

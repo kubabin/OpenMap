@@ -6,18 +6,18 @@ import dev.kubabin.openmap.widgets.MenuWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class SimpleLayerProvider extends LayerProvider {
     public ArrayList<Marker> markers = new ArrayList<>();
+    public Component name;
     @Override
-    public Component render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        if (!isVisible()) return null;
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, List<Component> tooltip) {
+        if (!isVisible()) return;
         double worldX = WorldmapScreen.screenToWorldX(mouseX);
         double worldZ = WorldmapScreen.screenToWorldZ(mouseY);
-        MutableComponent tooltip = Component.empty();
         for (Marker marker : markers){
             marker.render(guiGraphics);
             int left = (int) (marker.x - marker.width / 2);
@@ -27,11 +27,10 @@ public class SimpleLayerProvider extends LayerProvider {
             if (worldX > left && worldX < right &&
                     worldZ > top && worldZ < bottom){
                 if (marker.tooltip != null){
-                    tooltip.append(marker.tooltip);
+                    tooltip.add(marker.tooltip);
                 }
             }
         }
-        return tooltip;
     }
 
     @Override
@@ -62,4 +61,13 @@ public class SimpleLayerProvider extends LayerProvider {
 
     @Override
     public void updateData() {}
+
+    @Override
+    public Component getName() {
+        return name != null ? name : Component.literal("Unnamed Layer");
+    }
+
+    @Override
+    public void onMapClose() {}
+
 }

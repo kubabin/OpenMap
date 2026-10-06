@@ -1,6 +1,5 @@
 package dev.kubabin.openmap.api.markers;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
@@ -10,10 +9,9 @@ public class IconMarker extends Marker {
     public double rotation;
     // If the icon should be centered on the world position.
     public boolean drawCentered = true;
-    public int textureWidth = 16;
-    public int textureHeight = 16;
     public double uvOffsetX = 0;
     public double uvOffsetY = 0;
+    public double scale = 1.0;
     public IconMarker(ResourceLocation icon){
         this.icon = icon;
         // TODO: Make this not hardcoded
@@ -23,19 +21,22 @@ public class IconMarker extends Marker {
     @Override
     public void render(GuiGraphics guiGraphics) {
         guiGraphics.pose().pushPose();
+        double width = this.width * this.scale;
+        double height = this.height * this.scale;
         guiGraphics.pose().translate(
-                this.x + this.width / 2.0,
-                this.y + this.height / 2.0,
+                this.x + width / 2.0,
+                this.y + height / 2.0,
                 0
         );
         guiGraphics.pose().mulPose(
                 Axis.ZP.rotationDegrees((float) this.rotation)
         );
         guiGraphics.pose().translate(
-                -this.width / 2.0,
-                -this.height / 2.0,
+                -width / 2.0,
+                -height / 2.0,
                 0
         );
+        guiGraphics.pose().scale((float) this.scale, (float) this.scale, 1.0f);
         guiGraphics.blit(icon,
                 drawCentered ? -this.width/2 : 0,
                 drawCentered ? -this.height/2 : 0,

@@ -3,16 +3,18 @@ package dev.kubabin.openmap.layers;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 
+import java.util.List;
+
 public abstract class LayerProvider {
     private boolean isVisible = true;
     /**
-     * Renders the layer and returns a tooltip if the mouse is hovering over it.
+     * Renders the layer and adds tooltip components if the mouse is hovering over it.
      * @param guiGraphics GuiGraphics context to draw with
      * @param mouseX Mouse screen X position
      * @param mouseY Mouse screen Y position
-     * @return Tooltip to display, or null if no tooltip should be displayed
+     * @param tooltip List of tooltip components to add to
      */
-    public abstract Component render(GuiGraphics guiGraphics, int mouseX, int mouseY);
+    public abstract void render(GuiGraphics guiGraphics, int mouseX, int mouseY, List<Component> tooltip);
 
     /**
      * @param x Mouse screen X position
@@ -25,6 +27,9 @@ public abstract class LayerProvider {
     public abstract void updateInitialData();
     // Called every tick
     public abstract void updateData();
+    public abstract Component getName();
+    // Called right before closing the worldmap.
+    public abstract void onMapClose();
     public boolean isVisible() {
         return isVisible;
     }

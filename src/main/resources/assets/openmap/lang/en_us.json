@@ -11,5 +11,7 @@
   "key.openmap.unclaim": "Unclaim",
   "key.openmap.claim_multiple": "Claim multiple chunks",
   "key.openmap.center_player": "Center Player",
-  "key.openmap.tool.claim": "Claim tool"
+  "key.openmap.tool.claim": "Claim tool",
+  "key.openmap.entities": "Entities",
+  "key.openmap.trains": "Trains"
 }

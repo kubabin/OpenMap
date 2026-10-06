@@ -1,9 +1,11 @@
 package dev.kubabin.openmap.layers;
 
+import dev.kubabin.openmap.WorldmapScreen;
 import dev.kubabin.openmap.datasource.MarkerSource;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
+
+import java.util.List;
 
 public class StreamedLayer extends LayerProvider {
     MarkerSource source;
@@ -11,23 +13,23 @@ public class StreamedLayer extends LayerProvider {
         this.source = source;
     }
     @Override
-    public Component render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        if (!isVisible()) return null;
-        MutableComponent tooltip = Component.empty();
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, List<Component> tooltip) {
+        if (!isVisible()) return;
+        final int finalMouseX = (int) WorldmapScreen.screenToWorldX(mouseX);
+        final int finalMouseY = (int) WorldmapScreen.screenToWorldZ(mouseY);
         source.getMarkers().forEach(marker -> {
             marker.render(guiGraphics);
-            int left = (int) (marker.x - marker.width / 2);
-            int right = (int) (marker.x + marker.width / 2);
-            int top = (int) (marker.y - marker.height / 2);
-            int bottom = (int) (marker.y + marker.height/2);
-            if (mouseX > left && mouseX < right &&
-                    mouseY > top && mouseY < bottom){
+            int left = (int) (marker.x - (double) marker.width / 2);
+            int right = (int) (marker.x + (double) marker.width / 2);
+            int top = (int) (marker.y - (double) marker.height / 2);
+            int bottom = (int) (marker.y + (double) marker.height/2);
+            if (finalMouseX > left && finalMouseX < right &&
+                    finalMouseY > top && finalMouseY < bottom){
                 if (marker.tooltip != null){
-                    tooltip.append(marker.tooltip);
+                    tooltip.add(marker.tooltip);
                 }
             }
         });
-        return tooltip;
     }
 
     @Override
@@ -44,4 +46,12 @@ public class StreamedLayer extends LayerProvider {
     public void updateData() {
 
     }
+
+    @Override
+    public Component getName() {
+        return source.getName();
+    }
+
+    @Override
+    public void onMapClose() {}
 }
