@@ -3,7 +3,7 @@ package dev.kubabin.openmap.waypoints;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import dev.kubabin.openmap.Openmap;
-import dev.kubabin.openmap.OpenmapApi;
+import dev.kubabin.openmap.api.OpenmapApi;
 import dev.kubabin.openmap.api.markers.Marker;
 import dev.kubabin.openmap.layers.SimpleLayerProvider;
 import net.minecraft.client.Minecraft;

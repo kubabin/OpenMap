@@ -15,7 +15,7 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public class CachedTile {
-    public static final Path TILE_DIR = Path.of(FMLPaths.GAMEDIR.get().toString(), "openmap_tiles_cache");
+    public static final Path DATA_DIR = Path.of(FMLPaths.GAMEDIR.get().toString(), "openmap_data");
     public static String worldName = "";
     public static String dimensionId = "";
     public static final int WIDTH = 512;
@@ -33,7 +33,7 @@ public class CachedTile {
         this.x = x;
         this.z = z;
         // Ensure the file exists.
-        file = new File(Path.of(TILE_DIR.toString(), worldName, dimensionId, "region_" + x + "_" + z + ".tile").toUri());
+        file = new File(Path.of(getWorldTileDir().toString(), x + "_" + z + ".tile").toUri());
         if (!file.exists()) {
             try {
                 if (saveToDisk) {
@@ -43,22 +43,42 @@ public class CachedTile {
                 Openmap.LOGGER.error("Couldn't create tile file {}, {}: {}", x, z, e.getMessage());
             }
         } else {
-            if (file.canRead()) {
-                try (InputStream is = new InflaterInputStream(new FileInputStream(file))) {
-                    byte[] fileBytes = is.readAllBytes();
-                    int copyLength = Math.min(fileBytes.length, data.capacity());
-                    data.put(fileBytes, 0, copyLength);
-                    /*topoData.put(fileBytes,
-                            copyLength,
-                            Math.min(fileBytes.length-data.capacity(), topoData.capacity())
-                    );*/
-                    doesActuallyExistOnFs = true;
-                    data.clear();
-                } catch (Exception e) {
-                    Openmap.LOGGER.error("Couldn't read cached tile data in {}, {}: {}", x, z, e.getMessage());
-                }
+            loadData();
+        }
+    }
+    private CachedTile(int x, int z, File file){
+        this.x = x;
+        this.z = z;
+        this.file = file;
+        loadData();
+    }
+    // Tries to open a tile. If it doesn't exist, returns null.
+    public static CachedTile tryOpen(int x, int z){
+        File file = new File(Path.of(getWorldTileDir().toString(), x + "_" + z + ".tile").toUri());
+        if (!file.exists()) {
+            return null;
+        } else {
+            return new CachedTile(x, z, file);
+        }
+    }
+    private void loadData(){
+        if (file.exists() && file.canRead()) {
+            try (InputStream is = new InflaterInputStream(new FileInputStream(file))) {
+                byte[] fileBytes = is.readAllBytes();
+                int copyLength = Math.min(fileBytes.length, data.capacity());
+                data.put(fileBytes, 0, copyLength);
+                doesActuallyExistOnFs = true;
+                data.clear();
+            } catch (Exception e) {
+                Openmap.LOGGER.error("Couldn't read cached tile data in {}, {}: {}", x, z, e.getMessage());
             }
         }
+    }
+    public static Path getWorldDataDir(){
+        return Path.of(DATA_DIR.toString(), worldName, dimensionId);
+    }
+    public static Path getWorldTileDir(){
+        return Path.of(getWorldDataDir().toString(), "tiles");
     }
     public static void ensureLevelDir(ClientLevel level){
         ResourceLocation location = level.dimension().location();
@@ -91,7 +111,7 @@ public class CachedTile {
     }
     public static void ensureDir(){
         try {
-            Files.createDirectories(TILE_DIR.resolve(worldName).resolve(dimensionId));
+            Files.createDirectories(getWorldTileDir());
         } catch (IOException e) {
             Openmap.LOGGER.error("Couldn't create tiles directory for world: {}", e.getMessage());
         }

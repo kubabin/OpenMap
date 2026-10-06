@@ -12,7 +12,7 @@ public class Openmap {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "openmap";
     // Directly reference a slf4j logger
-    protected static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public static final String LAYER_WAYPOINTS = "key.openmap.waypoints";
     public static final String LAYER_PLAYERS   = "key.openmap.players";

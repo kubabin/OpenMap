@@ -62,6 +62,7 @@ public class MinimapRendering {
     }
 
     public static void renderMinimap(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        if (!Config.showMinimap) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.isPaused()) return;
 
@@ -93,8 +94,8 @@ public class MinimapRendering {
             float blockMapSize = 1f / (Config.getMapSize());
             double playerX = mc.player.getX();
             double playerZ = mc.player.getZ();
-            float xOffset = Math.clamp((float) (blockMapSize * (playerX - (int) playerX)), -1f, 1f);
-            float yOffset = Math.clamp((float) (blockMapSize * (playerZ - (int) playerZ)), -1f, 1f);
+            float xOffset = (float) (blockMapSize * (playerX - MinimapThreadManager.lastPlayerX));
+            float yOffset = (float) (blockMapSize * (playerZ - MinimapThreadManager.lastPlayerZ));
             shader.safeGetUniform("UVOffset").set(xOffset, yOffset);
 
             // Draw the quad manually: GuiGraphics.blit() forces the position_tex_color

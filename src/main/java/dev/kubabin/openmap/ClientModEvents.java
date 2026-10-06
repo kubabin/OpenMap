@@ -1,29 +1,35 @@
 package dev.kubabin.openmap;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.mojang.blaze3d.vertex.*;
+import dev.kubabin.openmap.api.OpenmapApi;
 import dev.kubabin.openmap.api.markers.IconMarker;
-import dev.kubabin.openmap.api.MenuItem;
 import dev.kubabin.openmap.api.markers.PlayerMarker;
+import dev.kubabin.openmap.compat.OpacCompat;
+import dev.kubabin.openmap.datasource.EntitySource;
+import dev.kubabin.openmap.layers.PlayerLayer;
 import dev.kubabin.openmap.layers.SimpleLayerProvider;
-import dev.kubabin.openmap.waypoints.CreateWaypointScreen;
+import dev.kubabin.openmap.layers.StreamedLayer;
+import dev.kubabin.openmap.menuitems.CreateWaypointMenuItem;
+import dev.kubabin.openmap.menuitems.TeleportMenuItem;
+import dev.kubabin.openmap.sidebuttons.CenterPlayerButton;
+import dev.kubabin.openmap.tools.ClaimTool;
 import dev.kubabin.openmap.waypoints.Waypoint;
-import dev.kubabin.openmap.widgets.TileWidget;
+import dev.kubabin.openmap.waypoints.WaypointClientStorage;
+import dev.kubabin.openmap.waypoints.networking.WaypointSyncPayload;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.DeathScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.util.Lazy;
+import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.lwjgl.glfw.GLFW;
@@ -53,58 +59,26 @@ public class ClientModEvents {
         event.enqueueWork(DynamicTextureManager::initTexture);
         // Set up tiles cache directory
         try {
-            Files.createDirectories(CachedTile.TILE_DIR);
+            Files.createDirectories(CachedTile.DATA_DIR);
         } catch (Exception e) {
             cache_enabled = false;
             Openmap.LOGGER.warn("Couldn't create openmap_tiles_cache directory: {}", e.getMessage());
         }
+        OpacCompat.init();
         // Built-in markers
-        SimpleLayerProvider playerLayer = new SimpleLayerProvider();
-        playerLayer.updateDataCallback = () -> {
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.level == null) return;
-            playerLayer.markers.clear();
-            mc.level.players().forEach(abstractClientPlayer -> {
-                if (mc.player != null && abstractClientPlayer.isInvisibleTo(mc.player)) return;
-                IconMarker marker = new PlayerMarker(abstractClientPlayer.getSkin());
-                marker.x = abstractClientPlayer.position().x;
-                marker.y = abstractClientPlayer.position().z;
-                marker.rotation = -180 + abstractClientPlayer.getYRot();
-                marker.tooltip = Tooltip.create(abstractClientPlayer.getName());
-                playerLayer.markers.add(marker);
-            });
-        };
+        SimpleLayerProvider playerLayer = new PlayerLayer();
         OpenmapApi.addLayer(Openmap.LAYER_PLAYERS, playerLayer);
 
         SimpleLayerProvider waypointLayer = new SimpleLayerProvider();
         OpenmapApi.addLayer(Openmap.LAYER_WAYPOINTS, waypointLayer);
 
-        // Built-in Global Menu Items
-        OpenmapApi.globalMenu.put("teleport", new MenuItem(
-                ResourceLocation.withDefaultNamespace("textures/item/ender_pearl.png"),
-                Component.translatable("key.openmap.teleport"),
-                (mouseX, mouseY) -> {
-                    Minecraft mc = Minecraft.getInstance();
-                    double worldX = TileWidget.screenToWorldX(mouseX);
-                    double worldZ = TileWidget.screenToWorldZ(mouseY);
-                    LocalPlayer player = mc.player;
-                    if (player == null) return;
-                    player.connection.sendCommand("tp "+worldX+" 100 "+worldZ);
+        OpenmapApi.addLayer("entities", new StreamedLayer(new EntitySource()));
 
-                    if (mc.screen == null) return;
-                    mc.screen.onClose();
-                    mc.setScreen(null);
-                }
-        ));
-        OpenmapApi.globalMenu.put("add-waypoint", new MenuItem(
-                ResourceLocation.fromNamespaceAndPath(MODID,"textures/gui/menu_icons/plus.png"),
-                Component.translatable("key.openmap.waypoint.create"),
-                ((mouseX, mouseY) -> {
-                    ParentScreen screen = (ParentScreen) Minecraft.getInstance().screen;
-                    if (screen == null) return;
-                    screen.openScreen(new CreateWaypointScreen((int) mouseX, (int) mouseY, screen));
-                })
-        ));
+        // Built-in Global Menu Items
+        OpenmapApi.globalMenu.put("teleport", TeleportMenuItem.createMenuItem());
+        OpenmapApi.globalMenu.put("add-waypoint", CreateWaypointMenuItem.createMenuItem());
+        OpenmapApi.topSideButtons.put("center-player", new CenterPlayerButton());
+
     }
 
     @SubscribeEvent
@@ -130,14 +104,23 @@ public class ClientModEvents {
         if (crossedBlockBoundary || tickCounter >= TICKS_PER_UPDATE){
             lastCenterX = playerPos.getX();
             lastCenterZ = playerPos.getZ();
-            MinimapThreadManager.process(event.getEntity(), event.getEntity().level());
         }
     }
 
+
     @SubscribeEvent
-    public static void onLevelLoad(LevelEvent.Load event){
-        if (!event.getLevel().isClientSide()) return;
-        CachedTile.ensureLevelDir((ClientLevel) event.getLevel());
+    public static void onPlayerLogin(ClientPlayerNetworkEvent.LoggingIn event){
+
+
+        Minecraft mc = Minecraft.getInstance();
+
+        WaypointClientStorage.isClientSide = !mc.hasSingleplayerServer() &&
+                !event.getPlayer().connection.hasChannel(WaypointSyncPayload.TYPE);
+        Openmap.LOGGER.info("Is client-side? {}", WaypointClientStorage.isClientSide);
+
+        WaypointClientStorage.saveWaypoints();
+        WaypointClientStorage.loadWaypoints();
+
     }
 
     @SubscribeEvent
@@ -145,23 +128,29 @@ public class ClientModEvents {
         while (toggleMapKey.get().consumeClick()) {
             Minecraft mc = Minecraft.getInstance();
             if (mc.screen == null) {
-                MinimapThreadManager.pause = true;
                 mc.setScreen(new WorldmapScreen());
             } else if (mc.screen instanceof WorldmapScreen) {
-                MinimapThreadManager.pause = false;
                 mc.setScreen(null);
             }
         }
     }
 
     @SubscribeEvent
-    public static void onClientLoggingIn(ClientPlayerNetworkEvent.LoggingIn event){
+    public static void onPlayerJoin(EntityJoinLevelEvent event){
+        if (event.getEntity() == Minecraft.getInstance().player){
+            MinimapThreadManager.startThread();
+        }
+    }
+    @SubscribeEvent
+    public static void onLevelLoad(LevelEvent.Load event){
+        if (!event.getLevel().isClientSide()) return;
         CachedTile.worldName = CachedTile.getSafeFolderName(getSessionIdentifier());
-        CachedTile.ensureDir();
+        CachedTile.ensureLevelDir((ClientLevel) event.getLevel());
     }
 
     @SubscribeEvent
     public static void onLevelUnload(LevelEvent.Unload event){
+        MinimapThreadManager.stop();
         MinimapThreadManager.tileStorage.cleanup();
     }
 
@@ -176,6 +165,9 @@ public class ClientModEvents {
         if (!(event.getScreen() instanceof DeathScreen screen)) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
+        // DO NOT be fooled by IntelliJ telling you this is always false.
+        // When you join a server while being in a dead state, you don't have the causeOfDeath shown.
+        if (screen.causeOfDeath == null) return;
         OpenmapApi.addWaypoint(new Waypoint(
                 mc.player.getX(), mc.player.getY(), mc.player.getZ(),
                 screen.causeOfDeath.getString(),

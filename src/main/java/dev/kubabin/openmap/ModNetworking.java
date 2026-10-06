@@ -25,7 +25,7 @@ public final class ModNetworking {
         registrar.playToClient(
                 WaypointSyncPayload.TYPE,
                 WaypointSyncPayload.STREAM_CODEC,
-                WaypointSyncPayload::handle
+                WaypointClientStorage::handleWaypointSync
         );
 
         registrar.playToServer(

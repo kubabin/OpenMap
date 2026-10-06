@@ -3,14 +3,12 @@ package dev.kubabin.openmap.waypoints;
 import dev.kubabin.openmap.NestedScreen;
 import dev.kubabin.openmap.Openmap;
 import dev.kubabin.openmap.ParentScreen;
-import dev.kubabin.openmap.waypoints.networking.CreateWaypointPayload;
-import dev.kubabin.openmap.widgets.TileWidget;
+import dev.kubabin.openmap.WorldmapScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.UUID;
 
@@ -21,8 +19,8 @@ public class CreateWaypointScreen extends NestedScreen {
     private final ParentScreen parent;
     public CreateWaypointScreen(int x, int y, ParentScreen parent) {
         super(x, y, Component.translatable("key.openmap.waypoint.create"));
-        this.waypointX = TileWidget.screenToWorldX(x);
-        this.waypointZ = TileWidget.screenToWorldZ(y);
+        this.waypointX = WorldmapScreen.screenToWorldX(x);
+        this.waypointZ = WorldmapScreen.screenToWorldZ(y);
         this.parent = parent;
     }
 
@@ -58,8 +56,8 @@ public class CreateWaypointScreen extends NestedScreen {
         } else if (name.contains("base")){
             icon = ResourceLocation.withDefaultNamespace("textures/map/decorations/plains_village.png");
         }
-        PacketDistributor.sendToServer(
-                new CreateWaypointPayload(
+        WaypointClientStorage.addWaypoint(
+                new Waypoint(
                         this.waypointX,
                         Double.NEGATIVE_INFINITY,
                         this.waypointZ,

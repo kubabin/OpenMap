@@ -6,5 +6,10 @@
   "key.openmap.teleport": "Teleport",
   "key.openmap.centerplayer": "Center the map on the player",
   "key.openmap.waypoint.create": "Create Waypoint",
-  "key.openmap.waypoint.name": "Waypoint name..."
+  "key.openmap.waypoint.name": "Waypoint name...",
+  "key.openmap.claim": "Claim",
+  "key.openmap.unclaim": "Unclaim",
+  "key.openmap.claim_multiple": "Claim multiple chunks",
+  "key.openmap.center_player": "Center Player",
+  "key.openmap.tool.claim": "Claim tool"
 }

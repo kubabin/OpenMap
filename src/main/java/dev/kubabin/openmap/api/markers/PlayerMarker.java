@@ -23,7 +23,7 @@ public class PlayerMarker extends IconMarker{
         );
         guiGraphics.blit(
                 skin.texture(),
-                (int) (this.x+ 1), (int) (this.y+ 1),
+                (int) (this.x + 2), (int) (this.y + 3),
                 4,4, // scaled w h
                 8, 8,
                 8, 8,

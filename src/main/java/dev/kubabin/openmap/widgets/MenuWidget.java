@@ -7,17 +7,23 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MenuWidget extends BetterAbstractWidget {
     static final int ENTRY_HEIGHT = 20;
-    static final int MENU_WIDTH = 100;
+    static final int MENU_WIDTH = 120;
     static final int ENTRY_PADDING = 4;
-    private final HashMap<String, MenuItem> menuItems;
+    private final List<MenuItem> menuItems;
     public MenuWidget(int x, int y, HashMap<String, MenuItem> menuItems) {
         super(x, y, MENU_WIDTH, menuItems.size(), Component.empty());
-        this.menuItems = menuItems;
-        this.height = menuItems.size()*ENTRY_HEIGHT;
+        this.menuItems = new ArrayList<>();
+        for (MenuItem item : menuItems.values()){
+            if (!item.onClick().displayInMenu(WorldmapScreen.screenToWorldX(x), WorldmapScreen.screenToWorldZ(y))) continue;
+            this.height += ENTRY_HEIGHT;
+            this.menuItems.add(item);
+        }
     }
 
     @Override
@@ -35,8 +41,7 @@ public class MenuWidget extends BetterAbstractWidget {
         );*/
         int x = getX()+ENTRY_PADDING;
         int y = getY();
-        for (String key : menuItems.keySet()){
-            MenuItem item = menuItems.get(key);
+        for (MenuItem item : menuItems){
             guiGraphics.blit(item.icon(), x,y+1, 0,0,
                     ENTRY_HEIGHT-ENTRY_PADDING, ENTRY_HEIGHT-ENTRY_PADDING,
                     16, 16);
@@ -74,8 +79,8 @@ public class MenuWidget extends BetterAbstractWidget {
             return false;
         }
 
-        MenuItem item = (MenuItem) menuItems.values().toArray()[entry];
-        item.onClick().run(mouseX, mouseY);
+        MenuItem item = menuItems.get(entry);
+        item.onClick().run(getX(), getY());
         return true;
     }
 
