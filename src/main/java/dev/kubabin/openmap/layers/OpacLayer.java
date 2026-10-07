@@ -4,9 +4,13 @@ import dev.kubabin.openmap.WorldmapScreen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 import xaero.pac.client.api.OpenPACClientAPI;
 import xaero.pac.client.claims.api.IClientClaimsManagerAPI;
+import xaero.pac.client.claims.tracker.result.api.IClaimsManagerClaimResultListenerAPI;
 import xaero.pac.common.claims.player.api.IPlayerChunkClaimAPI;
+import xaero.pac.common.claims.result.api.AreaClaimResult;
+import xaero.pac.common.claims.tracker.api.IClaimsManagerListenerAPI;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class OpacLayer extends LayerProvider {
+public class OpacLayer extends LayerProvider implements IClaimsManagerClaimResultListenerAPI, IClaimsManagerListenerAPI {
     private ResourceLocation dimension;
     private IClientClaimsManagerAPI claimsManager;
     private final List<ClaimRectangle> cachedRectangles = new ArrayList<>();
@@ -178,5 +182,24 @@ public class OpacLayer extends LayerProvider {
     @Override
     public boolean clicked(int x, int y, int button) {
         return false;
+    }
+    @Override
+    public void onClaimResult(@NotNull AreaClaimResult result) {
+        invalidateCache();
+    }
+
+    @Override
+    public void onWholeRegionChange(@NotNull ResourceLocation dimension, int regionX, int regionZ) {
+        invalidateCache();
+    }
+
+    @Override
+    public void onChunkChange(@NotNull ResourceLocation dimension, int chunkX, int chunkZ, IPlayerChunkClaimAPI claim) {
+        invalidateCache();
+    }
+
+    @Override
+    public void onDimensionChange(ResourceLocation dimension) {
+        invalidateCache();
     }
 }

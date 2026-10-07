@@ -23,6 +23,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.*;
@@ -63,11 +64,16 @@ public class ClientModEvents {
             cache_enabled = false;
             Openmap.LOGGER.warn("Couldn't create openmap_tiles_cache directory: {}", e.getMessage());
         }
-        OpacCompat.init();
+        if (ModList.get().isLoaded(OpacCompat.OPAC_MODID)) {
+            OpacCompat.init();
+        }
 
-        // Built-in layers
         OpenmapApi.addLayer(new StreamedLayer(new EntitySource()));
-        CreateCompat.init();
+
+        if (ModList.get().isLoaded(CreateCompat.MODID)) {
+            CreateCompat.init();
+        }
+
         OpenmapApi.addLayer(new StreamedLayer(new WaypointSource()));
         OpenmapApi.addLayer(new StreamedLayer(new PlayerSource()));
 
