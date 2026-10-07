@@ -6,6 +6,7 @@ import dev.kubabin.openmap.api.markers.AlphaIconMarker;
 import dev.kubabin.openmap.api.markers.Marker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Mob;
 
@@ -30,7 +31,8 @@ public class EntitySource implements MarkerSource{
                     marker.y = entity.position().z;
                     marker.drawCentered = false;
                     marker.rotation = -180 + entity.getYRot();
-                    marker.tooltip = entity.getName();
+                    marker.tooltip = MutableComponent.create(entity.getName().getContents()).
+                            withColor(entity.getType().getCategory().isFriendly() ? 0x00FF00 : 0xFF0000);
                     marker.width = 5;
                     marker.height = 7;
                     marker.scale = 0.3;
