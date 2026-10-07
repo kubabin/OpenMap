@@ -11,7 +11,7 @@ public class CenterPlayerButton extends SideButton {
     public CenterPlayerButton() {
         super(
                 ResourceLocation.fromNamespaceAndPath(MODID, "textures/gui/player.png"),
-                Component.literal("key.openmap.center_player")
+                Component.translatable("key.openmap.center_player")
         );
     }
 
