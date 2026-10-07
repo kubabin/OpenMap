@@ -1,5 +1,6 @@
 package dev.kubabin.openmap.sidebuttons;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
@@ -28,6 +29,9 @@ public abstract class SideButton extends AbstractButton {
                 0, 0,
                 width, height,
                 width, height);
+        if (isHoveredOrFocused()) {
+            guiGraphics.renderTooltip(Minecraft.getInstance().font, tooltip, mouseX, mouseY);
+        }
 
     }
 
