@@ -18,7 +18,6 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.DeathScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -30,7 +29,6 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.common.util.Lazy;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
-import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.lwjgl.glfw.GLFW;
 
 import java.nio.file.Files;
@@ -42,11 +40,7 @@ import static dev.kubabin.openmap.Openmap.MODID;
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
 public class ClientModEvents {
-    private static int tickCounter = 0;
-    private static final int TICKS_PER_UPDATE = 10; // Update every second (20 ticks)
     public static boolean cache_enabled = true;
-    public static int lastCenterX = 0;
-    public static int lastCenterZ = 0;
     public static final Lazy<KeyMapping> toggleMapKey = Lazy.of(() -> new KeyMapping(
             "key.openmap.worldmap",
             InputConstants.Type.KEYSYM,
@@ -98,23 +92,9 @@ public class ClientModEvents {
         );
     }
 
-    @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Post event){
-        if (!event.getEntity().isLocalPlayer()) return;
-        BlockPos playerPos = event.getEntity().blockPosition();
-        boolean crossedBlockBoundary = playerPos.getX() != lastCenterX || playerPos.getZ() != lastCenterZ;
-        tickCounter++;
-        if (crossedBlockBoundary || tickCounter >= TICKS_PER_UPDATE){
-            lastCenterX = playerPos.getX();
-            lastCenterZ = playerPos.getZ();
-        }
-    }
-
 
     @SubscribeEvent
     public static void onPlayerLogin(ClientPlayerNetworkEvent.LoggingIn event){
-
-
         Minecraft mc = Minecraft.getInstance();
 
         WaypointClientStorage.isClientSide = !mc.hasSingleplayerServer() &&
