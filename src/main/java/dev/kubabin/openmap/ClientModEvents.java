@@ -170,6 +170,7 @@ public class ClientModEvents {
         if (mc.player == null) return;
         // DO NOT be fooled by IntelliJ telling you this is always false.
         // When you join a server while being in a dead state, you don't have the causeOfDeath shown.
+        // noinspection ConstantConditions
         if (screen.causeOfDeath == null) return;
         OpenmapApi.addWaypoint(new Waypoint(
                 mc.player.getX(), mc.player.getY(), mc.player.getZ(),

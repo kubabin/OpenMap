@@ -3,7 +3,6 @@ package dev.kubabin.openmap.compat;
 import dev.kubabin.openmap.api.OpenmapApi;
 import dev.kubabin.openmap.layers.LayerProvider;
 import dev.kubabin.openmap.layers.TrainLayer;
-import net.neoforged.fml.ModList;
 
 public class CreateCompat {
     public static final String MODID = "create";
