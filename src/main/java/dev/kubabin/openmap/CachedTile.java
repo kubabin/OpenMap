@@ -22,7 +22,6 @@ public class CachedTile {
     public static final int HEIGHT = 512;
     public static boolean saveToDisk = true;
     public ByteBuffer data = ByteBuffer.allocateDirect(WIDTH * HEIGHT * 3);
-    //public ByteBuffer topoData = ByteBuffer.allocateDirect(WIDTH*HEIGHT*2);
     private final File file;
     public final int x;
     public final int z;
@@ -104,8 +103,11 @@ public class CachedTile {
             sessionIdentifier = mc.getSingleplayerServer().getWorldData().getLevelName();
         } else {
             // Multiplayer Server IP/Domain (e.g., "play.hypixel.net_25565")
-            ServerData serverData = mc.getCurrentServer();
-            sessionIdentifier = (serverData != null) ? serverData.ip : "multiplayer_unknown";
+            if (mc.getConnection() == null || mc.getConnection().getServerData() == null) {
+                return "multiplayer_unknown";
+            }
+            ServerData serverData = mc.getConnection().getServerData();
+            sessionIdentifier = serverData.ip;
         }
         return sessionIdentifier;
     }
@@ -126,8 +128,6 @@ public class CachedTile {
             byte[] buf = new byte[data.capacity()];
             data.get(buf);
             fos.write(buf);
-            /*topoData.get(buf);
-            fos.write(buf, 0, topoData.capacity());*/
         } catch (Exception e) {
             Openmap.LOGGER.error("Couldn't write to tile cache file at {}, {}: {}", x, z, e.getMessage());
         }
@@ -147,9 +147,5 @@ public class CachedTile {
         data.put(offset, b);
         data.put(offset + 1, g);
         data.put(offset + 2, r);
-    }
-    public void setTopo(int x, int y, short height){
-        int offset = (y*WIDTH*2) + (x*2);
-        //topoData.putShort(offset, height);
     }
 }

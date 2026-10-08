@@ -7,8 +7,10 @@ import dev.kubabin.openmap.WorldmapScreen;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.util.UUID;
 
@@ -56,10 +58,22 @@ public class CreateWaypointScreen extends NestedScreen {
         } else if (name.contains("base")){
             icon = ResourceLocation.withDefaultNamespace("textures/map/decorations/plains_village.png");
         }
+        Minecraft mc = Minecraft.getInstance();
+        double y;
+        if (WaypointClientStorage.isClientSide){
+            if (mc.level != null && mc.level.isLoaded(new BlockPos((int) waypointX, 0, (int) waypointZ))){
+                y = mc.level.getHeight(Heightmap.Types.WORLD_SURFACE, (int) waypointX, (int) waypointZ);
+            } else {
+                y = 64;
+            }
+        } else {
+            // Let the server figure it out
+            y = Double.NEGATIVE_INFINITY;
+        }
         WaypointClientStorage.addWaypoint(
                 new Waypoint(
                         this.waypointX,
-                        Double.NEGATIVE_INFINITY,
+                        y,
                         this.waypointZ,
                         nameEditBox.getValue(),
                         icon.toString(),

@@ -20,10 +20,10 @@ public class WaypointClientStorage {
     public static boolean isClientSide = true;
     public static void loadWaypoints(){
         if (!isClientSide) return;
+        waypoints = new ArrayList<>();
         File waypointsFile = new File(CachedTile.getWorldDataDir().resolve("waypoints.dat").toUri());
         try (InputStream stream = new FileInputStream(waypointsFile)){
             CompoundTag waypointsTag = NbtIo.readCompressed(stream, NbtAccounter.unlimitedHeap());
-            waypoints = new ArrayList<>();
             ListTag waypointsList = waypointsTag.getList("waypoints", ListTag.TAG_COMPOUND);
             for (Tag tag : waypointsList){
                 waypoints.add(Waypoint.fromTag((CompoundTag) tag));

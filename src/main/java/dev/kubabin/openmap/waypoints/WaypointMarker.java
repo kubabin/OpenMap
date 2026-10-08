@@ -1,6 +1,6 @@
 package dev.kubabin.openmap.waypoints;
 
-import dev.kubabin.openmap.MenuItemRunnable;
+import dev.kubabin.openmap.menuitems.MenuItemRunnable;
 import dev.kubabin.openmap.Openmap;
 import dev.kubabin.openmap.api.markers.IconMarker;
 import dev.kubabin.openmap.api.MenuItem;
@@ -8,21 +8,16 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 
-import java.util.UUID;
-
 public class WaypointMarker extends IconMarker {
     protected String name;
-    private final UUID uuid;
-    private double worldY;
     public WaypointMarker(Waypoint wp) {
         super(ResourceLocation.parse(wp.icon()));
         this.x = (int) wp.x();
-        this.worldY = wp.y();
         this.y = (int) wp.z();
         this.name = wp.name();
-        this.uuid = wp.uuid();
         this.width = 8;
         this.height = 8;
+        this.tooltip = Component.literal(wp.name());
 
         if (Minecraft.getInstance().player.getPermissionLevel() >= 2) {
             this.menuItems.put("teleport", new MenuItem(
@@ -64,10 +59,6 @@ public class WaypointMarker extends IconMarker {
                     }
                 }
         ));
-    }
-
-    public double getWorldY() {
-        return worldY;
     }
 
     public String getName() {

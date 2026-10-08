@@ -99,11 +99,6 @@ public class ClientModEvents {
 
         WaypointClientStorage.isClientSide = !mc.hasSingleplayerServer() &&
                 !event.getPlayer().connection.hasChannel(WaypointSyncPayload.TYPE);
-        Openmap.LOGGER.info("Is client-side? {}", WaypointClientStorage.isClientSide);
-
-        WaypointClientStorage.saveWaypoints();
-        WaypointClientStorage.loadWaypoints();
-
     }
 
     @SubscribeEvent
@@ -120,21 +115,19 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void onPlayerJoin(EntityJoinLevelEvent event){
-        if (event.getEntity() == Minecraft.getInstance().player){
-            MapThread.startThread();
-        }
-    }
-    @SubscribeEvent
-    public static void onLevelLoad(LevelEvent.Load event){
-        if (!event.getLevel().isClientSide()) return;
+        if (event.getEntity() != Minecraft.getInstance().player) return;
         CachedTile.worldName = CachedTile.getSafeFolderName(getSessionIdentifier());
         CachedTile.ensureLevelDir((ClientLevel) event.getLevel());
+        WaypointClientStorage.loadWaypoints();
+        MapThread.startThread();
     }
 
     @SubscribeEvent
     public static void onLevelUnload(LevelEvent.Unload event){
+        if (!event.getLevel().isClientSide()) return;
         MapThread.stop();
         MapThread.tileStorage.cleanup();
+        WaypointClientStorage.saveWaypoints();
     }
 
     @SubscribeEvent
