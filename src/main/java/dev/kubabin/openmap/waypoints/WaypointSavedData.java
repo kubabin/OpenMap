@@ -6,6 +6,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -34,14 +35,7 @@ public class WaypointSavedData extends SavedData {
             for (Tag waypointTag : waypointList) {
                 CompoundTag waypoint = (CompoundTag) waypointTag;
 
-                playerWaypoints.add(new Waypoint(
-                        waypoint.getDouble("x"),
-                        waypoint.getDouble("y"),
-                        waypoint.getDouble("z"),
-                        waypoint.getString("name"),
-                        waypoint.getString("icon"),
-                        waypoint.getUUID("uuid")
-                ));
+                playerWaypoints.add(Waypoint.fromTag(waypoint));
             }
 
             data.waypoints.put(uuid, playerWaypoints);
@@ -51,7 +45,7 @@ public class WaypointSavedData extends SavedData {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag, HolderLookup.Provider provider) {
+    public @NotNull CompoundTag save(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider provider) {
         ListTag players = new ListTag();
 
         for (Map.Entry<UUID, List<Waypoint>> entry : waypoints.entrySet()) {
@@ -62,16 +56,7 @@ public class WaypointSavedData extends SavedData {
             ListTag waypointList = new ListTag();
 
             for (Waypoint waypoint : entry.getValue()) {
-                CompoundTag waypointTag = new CompoundTag();
-
-                waypointTag.putDouble("x", waypoint.x());
-                waypointTag.putDouble("y", waypoint.y());
-                waypointTag.putDouble("z", waypoint.z());
-                waypointTag.putString("name", waypoint.name());
-                waypointTag.putString("icon", waypoint.icon().toString());
-                waypointTag.putUUID("uuid", waypoint.uuid());
-
-                waypointList.add(waypointTag);
+                waypointList.add(waypoint.toTag());
             }
 
             player.put("waypoints", waypointList);

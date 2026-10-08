@@ -22,15 +22,12 @@ import java.io.IOException;
 public class MinimapRendering {
     private static ShaderInstance minimapShader;
     private static ShaderInstance worldmapShader;
-    private static ShaderInstance topoShader;
+
     public static ShaderInstance getMinimapShader() {
         return minimapShader;
     }
     public static ShaderInstance getWorldmapShader() {
         return worldmapShader;
-    }
-    public static ShaderInstance getTopoShader() {
-        return topoShader;
     }
 
     @SubscribeEvent
@@ -51,17 +48,10 @@ public class MinimapRendering {
                 ),
                 shaderInstance -> worldmapShader = shaderInstance
         );
-        event.registerShader(
-                new ShaderInstance(
-                        event.getResourceProvider(),
-                        ResourceLocation.fromNamespaceAndPath(Openmap.MODID, "worldmap_topo"),
-                        DefaultVertexFormat.POSITION_TEX
-                ),
-                shaderInstance -> topoShader = shaderInstance
-        );
     }
 
     public static void renderMinimap(GuiGraphics guiGraphics, DeltaTracker deltaTracker) {
+        if (!Config.showMinimap) return;
         Minecraft mc = Minecraft.getInstance();
         if (mc.isPaused()) return;
 
@@ -93,8 +83,8 @@ public class MinimapRendering {
             float blockMapSize = 1f / (Config.getMapSize());
             double playerX = mc.player.getX();
             double playerZ = mc.player.getZ();
-            float xOffset = Math.clamp((float) (blockMapSize * (playerX - (int) playerX)), -1f, 1f);
-            float yOffset = Math.clamp((float) (blockMapSize * (playerZ - (int) playerZ)), -1f, 1f);
+            float xOffset = (float) (blockMapSize * (playerX - MapThread.lastPlayerX));
+            float yOffset = (float) (blockMapSize * (playerZ - MapThread.lastPlayerZ));
             shader.safeGetUniform("UVOffset").set(xOffset, yOffset);
 
             // Draw the quad manually: GuiGraphics.blit() forces the position_tex_color

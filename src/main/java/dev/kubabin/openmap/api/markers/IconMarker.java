@@ -9,6 +9,9 @@ public class IconMarker extends Marker {
     public double rotation;
     // If the icon should be centered on the world position.
     public boolean drawCentered = true;
+    public double uvOffsetX = 0;
+    public double uvOffsetY = 0;
+    public double scale = 1.0;
     public IconMarker(ResourceLocation icon){
         this.icon = icon;
         // TODO: Make this not hardcoded
@@ -18,23 +21,26 @@ public class IconMarker extends Marker {
     @Override
     public void render(GuiGraphics guiGraphics) {
         guiGraphics.pose().pushPose();
+        double width = this.width * this.scale;
+        double height = this.height * this.scale;
         guiGraphics.pose().translate(
-                this.x + this.width / 2.0,
-                this.y + this.height / 2.0,
+                this.x + width / 2.0,
+                this.y + height / 2.0,
                 0
         );
         guiGraphics.pose().mulPose(
                 Axis.ZP.rotationDegrees((float) this.rotation)
         );
         guiGraphics.pose().translate(
-                -this.width / 2.0,
-                -this.height / 2.0,
+                -width / 2.0,
+                -height / 2.0,
                 0
         );
+        guiGraphics.pose().scale((float) this.scale, (float) this.scale, 1.0f);
         guiGraphics.blit(icon,
                 drawCentered ? -this.width/2 : 0,
                 drawCentered ? -this.height/2 : 0,
-                0, 0,
+                (float) this.uvOffsetX, (float) this.uvOffsetY,
                 this.width, this.height,
                 this.width, this.height);
         guiGraphics.pose().popPose();

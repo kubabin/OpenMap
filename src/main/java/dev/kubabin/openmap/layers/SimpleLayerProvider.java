@@ -3,22 +3,21 @@ package dev.kubabin.openmap.layers;
 import dev.kubabin.openmap.WorldmapScreen;
 import dev.kubabin.openmap.api.markers.Marker;
 import dev.kubabin.openmap.widgets.MenuWidget;
-import dev.kubabin.openmap.widgets.TileWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class SimpleLayerProvider implements LayerProvider {
-    private boolean visible = true;
+public class SimpleLayerProvider extends LayerProvider {
     public ArrayList<Marker> markers = new ArrayList<>();
-    public Runnable updateDataCallback;
-    public Runnable updateInitialDataCallback;
+    public Component name;
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        if (!visible) return;
-        double worldX = TileWidget.screenToWorldX(mouseX);
-        double worldZ = TileWidget.screenToWorldZ(mouseY);
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, List<Component> tooltip) {
+        if (!isVisible()) return;
+        double worldX = WorldmapScreen.screenToWorldX(mouseX);
+        double worldZ = WorldmapScreen.screenToWorldZ(mouseY);
         for (Marker marker : markers){
             marker.render(guiGraphics);
             int left = (int) (marker.x - marker.width / 2);
@@ -28,11 +27,7 @@ public class SimpleLayerProvider implements LayerProvider {
             if (worldX > left && worldX < right &&
                     worldZ > top && worldZ < bottom){
                 if (marker.tooltip != null){
-                    guiGraphics.pose().popPose();
-                    guiGraphics.renderTooltip(Minecraft.getInstance().font,
-                            marker.tooltip.toCharSequence(Minecraft.getInstance()),
-                            mouseX, mouseY);
-                    TileWidget.makePose(guiGraphics);
+                    tooltip.add(marker.tooltip);
                 }
             }
         }
@@ -41,8 +36,8 @@ public class SimpleLayerProvider implements LayerProvider {
     @Override
     public boolean clicked(int x, int y, int button) {
         if (button != 1) return false;
-        double mouseX = TileWidget.screenToWorldX(x);
-        double mouseY = TileWidget.screenToWorldZ(y);
+        double mouseX = WorldmapScreen.screenToWorldX(x);
+        double mouseY = WorldmapScreen.screenToWorldZ(y);
         for (Marker marker : markers){
             double left = marker.x - marker.width / 2d;
             double right = marker.x + marker.width / 2d;
@@ -62,32 +57,17 @@ public class SimpleLayerProvider implements LayerProvider {
     }
 
     @Override
-    public void updateInitialData() {
-        if (updateInitialDataCallback != null){
-            updateInitialDataCallback.run();
-        }
+    public void updateInitialData() {}
+
+    @Override
+    public void updateData() {}
+
+    @Override
+    public Component getName() {
+        return name != null ? name : Component.literal("Unnamed Layer");
     }
 
     @Override
-    public void updateData() {
-        if (updateDataCallback != null){
-            updateDataCallback.run();
-        }
-    }
+    public void onMapClose() {}
 
-
-    @Override
-    public boolean isVisible() {
-        return visible;
-    }
-
-    @Override
-    public void hide() {
-        visible = false;
-    }
-
-    @Override
-    public void show() {
-        visible = true;
-    }
 }

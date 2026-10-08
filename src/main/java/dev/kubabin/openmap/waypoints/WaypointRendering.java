@@ -3,9 +3,6 @@ package dev.kubabin.openmap.waypoints;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import dev.kubabin.openmap.Openmap;
-import dev.kubabin.openmap.OpenmapApi;
-import dev.kubabin.openmap.api.markers.Marker;
-import dev.kubabin.openmap.layers.SimpleLayerProvider;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.renderer.*;
@@ -34,21 +31,17 @@ public class WaypointRendering {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
 
-        SimpleLayerProvider waypointLayer = (SimpleLayerProvider) OpenmapApi.getLayer(Openmap.LAYER_WAYPOINTS);
-        if (!waypointLayer.isVisible()) return;
-
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         Vec3 cameraPosition = event.getCamera().getPosition();
         PoseStack poseStack = event.getPoseStack();
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.depthMask(false);
-        for (Marker marker : waypointLayer.markers) {
-            if (!(marker instanceof WaypointMarker waypoint)) continue;
+        for (Waypoint waypoint : WaypointClientStorage.getWaypoints()) {
 
-            double waypointX = waypoint.x;
-            double waypointY = waypoint.getWorldY();
-            double waypointZ = waypoint.y;
+            double waypointX = waypoint.x();
+            double waypointY = waypoint.y();
+            double waypointZ = waypoint.z();
             double horizontalDistanceSqr = mc.player.distanceToSqr(waypointX, waypointY, waypointZ);
             float markerScale = Mth.clamp(
                     (float) Math.sqrt(horizontalDistanceSqr)
@@ -117,7 +110,7 @@ public class WaypointRendering {
 
     private static void renderWaypointMarker(
             PoseStack poseStack, MultiBufferSource bufferSource, RenderLevelStageEvent event,
-            WaypointMarker waypoint, float markerScale
+            Waypoint waypoint, float markerScale
     ) {
         poseStack.pushPose();
 
@@ -125,13 +118,13 @@ public class WaypointRendering {
         poseStack.scale(markerScale, -markerScale, markerScale);
 
         Matrix4f matrix = poseStack.last().pose();
-        VertexConsumer iconVertices = bufferSource.getBuffer(renderType(waypoint.getIcon()));
+        VertexConsumer iconVertices = bufferSource.getBuffer(renderType(ResourceLocation.parse(waypoint.icon())));
         addWaypointIconVertex(iconVertices, matrix, -8, -16, 0, 0);
         addWaypointIconVertex(iconVertices, matrix, -8, 0, 0, 1);
         addWaypointIconVertex(iconVertices, matrix, 8, 0, 1, 1);
         addWaypointIconVertex(iconVertices, matrix, 8, -16, 1, 0);
 
-        String name = waypoint.getName();
+        String name = waypoint.name();
         Minecraft mc = Minecraft.getInstance();
         mc.font.drawInBatch(
                 name,
