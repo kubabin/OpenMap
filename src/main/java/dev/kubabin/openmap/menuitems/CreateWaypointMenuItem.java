@@ -1,6 +1,5 @@
 package dev.kubabin.openmap.menuitems;
 
-import dev.kubabin.openmap.MenuItemRunnable;
 import dev.kubabin.openmap.ParentScreen;
 import dev.kubabin.openmap.api.MenuItem;
 import dev.kubabin.openmap.waypoints.CreateWaypointScreen;

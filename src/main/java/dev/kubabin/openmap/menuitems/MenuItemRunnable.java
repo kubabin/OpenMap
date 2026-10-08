@@ -1,4 +1,4 @@
-package dev.kubabin.openmap;
+package dev.kubabin.openmap.menuitems;
 
 public interface MenuItemRunnable {
     /**

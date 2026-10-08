@@ -1,6 +1,5 @@
 package dev.kubabin.openmap.menuitems;
 
-import dev.kubabin.openmap.MenuItemRunnable;
 import dev.kubabin.openmap.Openmap;
 import dev.kubabin.openmap.WorldmapScreen;
 import dev.kubabin.openmap.api.MenuItem;
