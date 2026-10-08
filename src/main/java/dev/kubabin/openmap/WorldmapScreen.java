@@ -206,7 +206,7 @@ public class WorldmapScreen extends ParentScreen {
         double cursorWorldX = screenToWorldX(mouseX);
         double cursorWorldZ = screenToWorldZ(mouseY);
         guiGraphics.drawString(Minecraft.getInstance().font,
-                "World: X: " + (int) (cursorWorldX/16) + " Z: " + (int) (cursorWorldZ/16),
+                "World: X: " + (int) (cursorWorldX) + " Z: " + (int) (cursorWorldZ),
                 25, guiGraphics.guiHeight() - 15, 0xFFFFFFFF);
         // player pos
         guiGraphics.drawString(Minecraft.getInstance().font,
