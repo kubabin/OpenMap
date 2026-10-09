@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -16,15 +17,15 @@ public class ChunkSnapshot {
     public int centerX, centerZ; // Block position the snapshot is centered on
     public int size;
     public int[] colorData;
-    //public short[] topoMap;
+    public byte[] lightData;
 
-    private ChunkSnapshot() {
-        colorData = new int[Config.getMapSize() * Config.getMapSize()];
-        //topoMap = new short[Config.mapSize*Config.mapSize];
+    private ChunkSnapshot(int size) {
+        this.size = size;
+        colorData = new int[size * size];
+        lightData = new byte[size * size];
     }
     public static ChunkSnapshot createSnapshot(Level level, BlockPos playerPos, int size) {
-        ChunkSnapshot newSnapshot = new ChunkSnapshot();
-        newSnapshot.size = size;
+        ChunkSnapshot newSnapshot = new ChunkSnapshot(size);
         newSnapshot.centerX = playerPos.getX();
         newSnapshot.centerZ = playerPos.getZ();
         newSnapshot.updateSnapshot(level, playerPos);
@@ -57,6 +58,7 @@ public class ChunkSnapshot {
                 }
                 BlockPos blockPos = new BlockPos(worldX, highestY - 1, worldZ);
                 BlockState state = level.getBlockState(blockPos);
+                lightData[index] = (byte) (level.getBrightness(LightLayer.BLOCK, new BlockPos(worldX, highestY, worldZ)) / 15.0 * 255);
 
                 heightData[index] = highestY;
                 mapColors[index] = state.getMapColor(level, blockPos);

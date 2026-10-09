@@ -21,7 +21,7 @@ public class CachedTile {
     public static final int WIDTH = 512;
     public static final int HEIGHT = 512;
     public static boolean saveToDisk = true;
-    public ByteBuffer data = ByteBuffer.allocateDirect(WIDTH * HEIGHT * 3);
+    public ByteBuffer data = ByteBuffer.allocateDirect(WIDTH * HEIGHT * 4);
     private final File file;
     public final int x;
     public final int z;
@@ -133,19 +133,20 @@ public class CachedTile {
         }
     }
 
-    public void setPixel(int x, int y, int color) {
+    public void setPixel(int x, int y, int color, byte a) {
         this.dirty = true;
         byte r = (byte) ((color >> 16) & 0xFF);
         byte g = (byte) ((color >> 8) & 0xFF);
         byte b = (byte) (color & 0xFF);
 
-        this.setPixel(x, y, r, g, b);
+        this.setPixel(x, y, r, g, b, a);
     }
 
-    public synchronized void setPixel(int x, int y, byte r, byte g, byte b) {
-        int offset = (y*WIDTH*3) + (x*3);
+    public synchronized void setPixel(int x, int y, byte r, byte g, byte b, byte a) {
+        int offset = (y*WIDTH*4) + (x*4);
         data.put(offset, b);
         data.put(offset + 1, g);
         data.put(offset + 2, r);
+        data.put(offset + 3, a);
     }
 }

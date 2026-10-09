@@ -14,6 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -141,7 +142,7 @@ public class WorldmapScreen extends ParentScreen {
                     0,
                     CachedTile.WIDTH,
                     CachedTile.HEIGHT,
-                    GL11.GL_RGB,
+                    GL11.GL_RGBA,
                     GL11.GL_UNSIGNED_BYTE,
                     pixelData
             );
@@ -151,7 +152,10 @@ public class WorldmapScreen extends ParentScreen {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShaderTexture(0, texture.getId());
-        RenderSystem.setShader(MinimapRendering::getWorldmapShader);
+        ShaderInstance shader = MinimapRendering.getWorldmapShader();
+        RenderSystem.setShader(() -> shader);
+        shader.safeGetUniform("DayTime")
+                .set((float) (getNightIntensity(Minecraft.getInstance().level.getDayTime())));
         Matrix4f matrix4f = guiGraphics.pose().last().pose();
         BufferBuilder bufferBuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
         float x = (float) tileX * 512;
@@ -387,5 +391,17 @@ public class WorldmapScreen extends ParentScreen {
 
     public static double screenToWorldZ(double y){
         return (y - translateY) / scale;
+    }
+
+    public static double getNightIntensity(long time){
+        time = Math.floorMod(time, 24000);
+
+        if (time < 12000) {
+            return 0.0;
+        } else if (time < 18000) {
+            return (1.0 - Math.cos(Math.PI * (time - 12000) / 6000.0)) / 2.0;
+        } else {
+            return (1.0 + Math.cos(Math.PI * (time - 18000) / 6000.0)) / 2.0;
+        }
     }
 }

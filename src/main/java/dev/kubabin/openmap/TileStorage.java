@@ -58,14 +58,14 @@ public class TileStorage {
      * @param z     Global world Y coordinate
      * @param color Block/pixel color
      */
-    public void writePixel(int x, int z, int color /*, short topo*/) {
+    public void writePixel(int x, int z, int color, byte a) {
         int regionX = Math.floorDiv(x, CachedTile.WIDTH);
         int regionZ = Math.floorDiv(z, CachedTile.HEIGHT);
         CachedTile tile = openRegionFile(regionX, regionZ);
         if (tile == null) return;
         int localX = Math.floorMod(x, CachedTile.WIDTH);
         int localZ = Math.floorMod(z, CachedTile.HEIGHT);
-        tile.setPixel(localX, localZ, color);
+        tile.setPixel(localX, localZ, color, a);
         //tile.setTopo(x, z, topo);
     }
 

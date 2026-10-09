@@ -36,9 +36,8 @@ public class MapThread {
             for (int z = 2; z < snapshot.size-2; z++) {
                 int offset = (x * snapshot.size) + z;
                 int color = snapshot.colorData[offset];
-                //short height = snapshot.topoMap[offset];
-                //if (color == 0) return;
-                tileStorage.writePixel(regionX + x, regionZ + z, color /*, height*/);
+                byte light = snapshot.lightData[offset];
+                tileStorage.writePixel(regionX + x, regionZ + z, color, light);
             }
         }
     }
