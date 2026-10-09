@@ -27,6 +27,9 @@ public class Config {
     private static final ModConfigSpec.BooleanValue underwaterHillshadingConfig = BUILDER
             .comment("Whether to apply hillshading underwater")
             .define("underwaterHillshading", true);
+    private static final ModConfigSpec.BooleanValue nightTintConfig = BUILDER
+            .comment("Should the map get darker at night")
+            .define("nightTint", true);
     private static final ModConfigSpec.DoubleValue maximumZoomoutConfig = BUILDER
             .comment("Maximum zoom out level for the minimap")
             .defineInRange("maximumZoomout", 0.3, 0.0, Double.MAX_VALUE);
@@ -42,6 +45,7 @@ public class Config {
     public static boolean showMinimap = true;
     public static boolean renderChunkBorders = false;
     public static boolean underwaterHillshading = true;
+    public static boolean nightTint = true;
     public static double maximumZoomout = 0.3;
     public static double maximumEntityDistance = 128.0;
     @SubscribeEvent
@@ -55,6 +59,7 @@ public class Config {
         showMinimap = showMinimapConfig.get();
         renderChunkBorders = renderChunkBordersConfig.get();
         underwaterHillshading = underwaterHillshadingConfig.get();
+        nightTint = nightTintConfig.get();
         maximumZoomout = maximumZoomoutConfig.get();
         maximumEntityDistance = maximumEntityDistanceConfig.get();
     }
